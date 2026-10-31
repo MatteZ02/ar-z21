@@ -28,7 +28,7 @@ import {
 import {DriveRequest, DriveThrottle} from './driveThrottle';
 import {Listener, TypedEmitter} from './emitter';
 import {LocoSubscriptions} from './subscriptions';
-import {TrackStatus, trackStatusFromMessage} from './trackStatus';
+import {nextTrackStatus, TrackStatus} from './trackStatus';
 import {UdpTransport} from './transport';
 
 // No reply within this time after connecting: try again.
@@ -444,7 +444,7 @@ export class ConnectionManager {
   }
 
   private handleMessage(message: Z21Message): void {
-    const trackStatus = trackStatusFromMessage(message);
+    const trackStatus = nextTrackStatus(this.trackStatus, message);
     const trackStatusChanged =
       trackStatus !== undefined && trackStatus !== this.trackStatus;
     if (trackStatusChanged) {
@@ -460,6 +460,7 @@ export class ConnectionManager {
       case 'stopped':
       case 'trackPowerOn':
       case 'trackPowerOff':
+      case 'shortCircuit':
         // The spec does not say whether the central unit reports loco state
         // after these (the Z21Sim simulator does not, and keeps the old
         // speeds). Ask, so the screen shows what the central unit holds.

@@ -280,15 +280,16 @@ describe('track status', () => {
   it('follows broadcasts', async () => {
     const {current, trackStatuses} = await connected();
     current().receive('07 00 40 00 81 00 81'); // stopped
-    current().receive('07 00 40 00 61 08 69'); // short circuit
     current().receive('07 00 40 00 61 00 61'); // power off
+    current().receive('07 00 40 00 61 08 69'); // short circuit
+    current().receive('07 00 40 00 61 00 61'); // power off: short stays
     current().receive('07 00 40 00 61 01 60'); // power on
 
     expect(trackStatuses).toEqual([
       'normal',
       'emergencyStop',
-      'shortCircuit',
       'powerOff',
+      'shortCircuit',
       'normal',
     ]);
   });
@@ -460,6 +461,26 @@ describe('emergency stop safety', () => {
     current().takeSent();
     current().receive(BC_POWER_ON);
     expect(current().takeSent()).toEqual([REQUEST_3_AND_200]);
+  });
+
+  it('keeps a short circuit visible when the power-off broadcast follows it', async () => {
+    // Recorded from a z21 start, FW 1.33: short circuit, then power off at
+    // once, and the status bits still say short circuit + power off.
+    const {current, trackStatuses} = await connected();
+    current().receive('07 00 40 00 61 08 69');
+    current().receive('07 00 40 00 61 00 61');
+    current().receive('08 00 40 00 62 22 06 46');
+    expect(trackStatuses).toEqual(['normal', 'shortCircuit']);
+
+    current().receive(BC_POWER_ON);
+    expect(trackStatuses).toEqual(['normal', 'shortCircuit', 'normal']);
+  });
+
+  it('ends a short circuit when a full status no longer reports it', async () => {
+    const {current, trackStatuses} = await connected();
+    current().receive('07 00 40 00 61 08 69');
+    current().receive('08 00 40 00 62 22 02 42');
+    expect(trackStatuses).toEqual(['normal', 'shortCircuit', 'powerOff']);
   });
 
   it('does not ask again for a repeated broadcast', async () => {

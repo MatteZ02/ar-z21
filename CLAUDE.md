@@ -18,7 +18,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 0 | Setup, theme, protocol notes | done |
 | 1 | Protocol layer + tests, UDP module, connection manager | done on Android (emulator vs Z21Sim and a z21 start FW 1.33); iOS untested |
 | 2 | Throttle, track status, STOP | done on Android (emulator vs Z21Sim and a z21 start FW 1.33, including a real short circuit); iOS untested |
-| 3 | Library, photos, loco switching | |
+| 3 | Library, photos, loco switching | code done, tested on the emulator against the z21 start; awaiting user review |
 | 4 | Split screen | |
 | 5 | Consists, Roco export import | |
 | 6 | Builds and docs | |
@@ -75,7 +75,11 @@ src/
                         action goes through.
   consist/              PURE consist math: offsets, direction, function routing
   store/                Zustand stores: connection, track status, live loco state, library, settings
-  db/                   expo-sqlite schema, migrations (PRAGMA user_version), repositories
+  library/              Loco model, function slots (pages of 2x6, column by column, as the
+                        Roco export), icons, validation, speed display (pure, tested);
+                        LibraryService (save/duplicate/delete/order); photos.ts (native)
+  db/                   expo-sqlite schema, migrations (PRAGMA user_version), repositories.
+                        Tests run the real SQL on node:sqlite (db/testUtils/nodeSqlite.ts).
   import/               Roco Z21 export importer (pure logic, separate from UI)
   ui/screens, ui/components
   theme/                palette.ts, colors.ts (semantic light/dark), tokens.ts, useTheme()
@@ -89,11 +93,16 @@ Current entry points:
 - `src/connection/nativeUdpTransport.ts`: the only file importing the native module. Keep it
   out of `src/connection/index.ts` so the rest stays testable.
 - `src/connection/testUtils/`: the fake transport and the Node `dgram` transport for tests.
-- `src/ui/AppServices.tsx`: creates the one ConnectionManager and DriveController, binds the
-  stores, connects at start-up, handles background/foreground. `useServices()` gives access.
+- `src/ui/AppServices.tsx`: creates the one ConnectionManager, DriveController and
+  LibraryService, binds the stores, connects at start-up, handles background/foreground.
+  `useServices()` gives access.
 - `src/ui/components/ScreenFrame.tsx`: every screen's frame (header with connection indicator
   and global STOP, track status banner).
 - `src/ui/screens/DriveScreen.tsx`: the single throttle, laid out after `driving_phone.PNG`.
+  Drives the library loco in settings (`driveLocoId`), or a plain address.
+- `src/ui/screens/LibraryScreen.tsx` (`/library`, `?mode=pick` from the drive screen) and
+  `LocoEditorScreen.tsx` (`/library/[id]`, `new` for a new loco).
+- Roco export format: `docs/z21-export-format.md`.
 - `src/ui/debug/ConnectionDebugScreen.tsx`: developer test screen (Settings → For developers).
 
 This machine (the user's Windows PC) has Android Studio on `D:`, but `ANDROID_HOME`/`JAVA_HOME`

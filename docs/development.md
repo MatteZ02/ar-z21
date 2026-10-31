@@ -7,7 +7,7 @@
 
 1. Install **Node.js** (LTS) and run `npm ci` in the repository.
 2. For Android builds, install **Android Studio**. It brings the Android SDK, an emulator and a
-   suitable JDK. Then set these, for example in *System → Environment Variables*:
+   suitable JDK. Then set these, for example in _System → Environment Variables_:
    - `ANDROID_HOME` = `%LOCALAPPDATA%\Android\Sdk`
    - add `%ANDROID_HOME%\platform-tools` to `PATH` (for `adb`)
    - `JAVA_HOME` = the JDK bundled with Android Studio: the `jbr` folder inside the Android Studio
@@ -15,6 +15,7 @@
 
    A separately installed JDK (e.g. Java 23) may not work with the Android Gradle plugin.
    Use the bundled one.
+
 3. **Long paths.** The native C++ build creates paths over 260 characters, and fails with
    `ninja: error: Stat(…): Filename longer than 260 characters`. Fix it once per machine:
    1. Enable Windows long paths (PowerShell as administrator), then reboot:
@@ -32,6 +33,7 @@
 
    Mapping the project to a short drive letter with `subst` does not help: the paths are still too
    long, and Expo autolinking cannot find `package.json` at the root of a drive.
+
 4. Check the setup with `npx expo-doctor`.
 
 ## Running a development build
@@ -93,7 +95,8 @@ The emulator reaches the host PC at **`10.0.2.2`**. Run the dummy server on the 
    New-NetFirewallRule -DisplayName "Z21 dummy server (UDP 21105)" -Direction Inbound -Protocol UDP -LocalPort 21105 -Action Allow -Profile Private
    ```
 
-   The Wi-Fi network must be set to *Private* in Windows. Otherwise use `-Profile Any`.
+   The Wi-Fi network must be set to _Private_ in Windows. Otherwise use `-Profile Any`.
+
 3. Enter the PC's address in the app and connect.
 
 ### What to look for in the log
@@ -102,7 +105,7 @@ The emulator reaches the host PC at **`10.0.2.2`**. Run the dummy server on the 
 - On connect, the first datagram is `08 00 50 00 01 00 00 00 07 00 40 00 21 24 05`: broadcast
   flags (basic only) plus a status request, combined in one datagram.
 - The app counts as **connected only after the first reply**. A server that never answers
-  `LAN_X_GET_STATUS` will never get past *connecting*.
+  `LAN_X_GET_STATUS` will never get past _connecting_.
 - When idle, a keepalive (`07 00 40 00 21 24 05`) is sent about every 25 s.
 
 ## Changing colours
@@ -113,10 +116,10 @@ they read semantic tokens from `useTheme()`. Linting fails if a colour such as `
 
 The theme has two layers:
 
-| File | What it contains | When to edit it |
-|---|---|---|
-| `src/theme/palette.ts` | The raw colour values (`red700: '#C62828'`, …) | To change a shade everywhere it is used |
-| `src/theme/colors.ts` | Semantic tokens (`stopButton`, `statusShortCircuit`, …) for light **and** dark mode, pointing at palette entries | To change what a part of the app uses |
+| File                   | What it contains                                                                                                 | When to edit it                         |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `src/theme/palette.ts` | The raw colour values (`red700: '#C62828'`, …)                                                                   | To change a shade everywhere it is used |
+| `src/theme/colors.ts`  | Semantic tokens (`stopButton`, `statusShortCircuit`, …) for light **and** dark mode, pointing at palette entries | To change what a part of the app uses   |
 
 Spacing, corner radii, font sizes and the minimum touch-target size are in `src/theme/tokens.ts`.
 

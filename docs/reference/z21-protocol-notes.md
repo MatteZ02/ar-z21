@@ -223,7 +223,8 @@ the known state, so that a lost packet cannot invert a function.
    DataLen 0x08, the address is clearly DB0 = Adr_MSB and DB1 = Adr_LSB.
 7. **E_STOP needs FW ≥ 1.43.** On older firmware, or on units that reply LAN_X_UNKNOWN_COMMAND, fall
    back to LAN_X_SET_LOCO_DRIVE with speed value `1` (E-Stop), keeping the current direction. This
-   fallback is valid for all three step modes.
+   fallback is valid for all three step modes. Because a unit may also ignore E_STOP silently
+   (Z21Sim does, see 7a), the app always sends the drive E-Stop, and adds E_STOP on FW ≥ 1.43.
 8. **DCC 14 bit 4.** Raw NMRA 14-step packets carry FL in bit 4; the Z21 table shows it as 0. Follow
    the spec: send 0 and control F0 with SET_LOCO_FUNCTION.
 9. **"Stop1"/"E-Stop1" in the 28-step table** (see section 6). Decode them, never encode them.

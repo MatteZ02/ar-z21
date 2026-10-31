@@ -176,37 +176,16 @@ export const DriveScreen = () => {
               </Text>
             )}
 
-            <View style={[styles.row, {gap: spacing.sm}]}>
-              <AppButton
-                label={strings.drive.slowerSymbol}
-                accessibilityHint={strings.drive.slower}
-                variant="outline"
-                disabled={disabled}
-                onPress={() => {
-                  controller.setSpeed(address, speed - 1);
-                }}
-              />
-              <AppButton
-                label={strings.drive.locoStop}
-                accessibilityHint={strings.drive.locoStopHint}
-                variant="outline"
-                disabled={disabled}
-                onPress={() => {
-                  feedback.emergencyStop();
-                  controller.emergencyStopLoco(address);
-                }}
-                style={styles.flex}
-              />
-              <AppButton
-                label={strings.drive.fasterSymbol}
-                accessibilityHint={strings.drive.faster}
-                variant="outline"
-                disabled={disabled}
-                onPress={() => {
-                  controller.setSpeed(address, speed + 1);
-                }}
-              />
-            </View>
+            <AppButton
+              label={strings.drive.locoStop}
+              accessibilityHint={strings.drive.locoStopHint}
+              variant="outline"
+              disabled={disabled}
+              onPress={() => {
+                feedback.emergencyStop();
+                controller.emergencyStopLoco(address);
+              }}
+            />
           </View>
         </View>
       </View>
@@ -280,9 +259,6 @@ const styles = StyleSheet.create({
   },
   address: {
     fontWeight: '700',
-  },
-  row: {
-    flexDirection: 'row',
   },
   flex: {
     flex: 1,

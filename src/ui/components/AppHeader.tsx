@@ -10,8 +10,9 @@ type Props = {
   title: string;
 };
 
-// Header of every screen: back, title, connection indicator and the global
-// STOP at the top right, as in the Roco Z21 app.
+// Header of every screen: back and title on the left, the global STOP in the
+// centre (decided by the user), the connection indicator on the right. The
+// two sides get equal widths so STOP is always exactly centred.
 export const AppHeader = ({title}: Props) => {
   const {colors, spacing, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
@@ -32,39 +33,45 @@ export const AppHeader = ({title}: Props) => {
         },
       ]}
     >
-      {canGoBack ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={strings.back}
-          onPress={() => {
-            router.back();
-          }}
+      <View style={[styles.side, {gap: spacing.xs}]}>
+        {canGoBack && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={strings.back}
+            onPress={() => {
+              router.back();
+            }}
+            style={[
+              styles.back,
+              {minWidth: minTouchTarget, minHeight: minTouchTarget},
+            ]}
+          >
+            <Icon
+              name="chevron-left"
+              size={fontSizes.display}
+              color={colors.accent}
+            />
+          </Pressable>
+        )}
+        <Text
+          accessibilityRole="header"
+          numberOfLines={1}
           style={[
-            styles.back,
-            {minWidth: minTouchTarget, minHeight: minTouchTarget},
+            styles.title,
+            {
+              color: colors.textPrimary,
+              fontSize: fontSizes.large,
+              paddingLeft: canGoBack ? 0 : spacing.sm,
+            },
           ]}
         >
-          <Icon
-            name="chevron-left"
-            size={fontSizes.display}
-            color={colors.accent}
-          />
-        </Pressable>
-      ) : (
-        <View style={{width: minTouchTarget}} />
-      )}
-      <Text
-        accessibilityRole="header"
-        numberOfLines={1}
-        style={[
-          styles.title,
-          {color: colors.textPrimary, fontSize: fontSizes.large},
-        ]}
-      >
-        {title}
-      </Text>
-      <ConnectionIndicator />
+          {title}
+        </Text>
+      </View>
       <GlobalStopButton />
+      <View style={[styles.side, styles.end]}>
+        <ConnectionIndicator />
+      </View>
     </View>
   );
 };
@@ -75,12 +82,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
+  side: {
+    flex: 1,
+    flexBasis: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  end: {
+    justifyContent: 'flex-end',
+  },
   back: {
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    flex: 1,
+    flexShrink: 1,
     fontWeight: '600',
   },
 });

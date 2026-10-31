@@ -71,10 +71,6 @@ export const strings = {
     invalidAddress: 'Enter an address from 1 to 10239.',
     use: 'Drive this loco',
     cancel: 'Cancel',
-    slower: 'Slower',
-    faster: 'Faster',
-    slowerSymbol: '−',
-    fasterSymbol: '+',
     addressPrefix: '#',
   },
 

@@ -18,8 +18,8 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 0 | Setup, theme, protocol notes | done |
 | 1 | Protocol layer + tests, UDP module, connection manager | done on Android (emulator vs Z21Sim and a z21 start FW 1.33); iOS untested |
 | 2 | Throttle, track status, STOP | done on Android (emulator vs Z21Sim and a z21 start FW 1.33, including a real short circuit); iOS untested |
-| 3 | Library, photos, loco switching | code done, tested on the emulator against the z21 start; awaiting user review |
-| 4 | Split screen | |
+| 3 | Library, photos, loco switching | done, tested on the emulator against the z21 start |
+| 4 | Split screen | code done, tested on the emulator (tablet via `wm density 240`) against the z21 start; awaiting user review |
 | 5 | Consists, Roco export import | |
 | 6 | Builds and docs | |
 
@@ -98,8 +98,10 @@ Current entry points:
   `useServices()` gives access.
 - `src/ui/components/ScreenFrame.tsx`: every screen's frame (header with connection indicator
   and global STOP, track status banner).
-- `src/ui/screens/DriveScreen.tsx`: the single throttle, laid out after `driving_phone.PNG`.
-  Drives the library loco in settings (`driveLocoId`), or a plain address.
+- `src/ui/screens/DriveScreen.tsx`: one throttle, or two side by side from `SPLIT_MIN_WIDTH`
+  (`src/ui/layout.ts`, 960 dp). `src/ui/components/Throttle.tsx` is one throttle, after
+  `driving_phone.PNG` / `driving_tablet.PNG`; what each drives is `settings.throttles[i]`
+  (`src/store/throttleSelection.ts`: library loco, plain address or none).
 - `src/ui/screens/LibraryScreen.tsx` (`/library`, `?mode=pick` from the drive screen) and
   `LocoEditorScreen.tsx` (`/library/[id]`, `new` for a new loco).
 - Roco export format: `docs/z21-export-format.md`.

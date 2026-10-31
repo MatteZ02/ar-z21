@@ -1,5 +1,6 @@
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {GestureResponderEvent, StyleSheet, View} from 'react-native';
+import {sliderSpeed} from '../../driving/sliderSpeed';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 
@@ -21,18 +22,26 @@ export const SpeedSlider = ({
 }: Props) => {
   const {colors, radii, minTouchTarget} = useTheme();
   const [height, setHeight] = useState(0);
+  // Screen position (pageY) of the track's top edge, taken when the touch
+  // starts. Moves are measured with pageY: once the finger leaves the track,
+  // locationY is not reliable on Android, and stopping must always work.
+  const top = useRef(0);
 
   const fraction = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
 
-  const setFromTouch = (event: GestureResponderEvent) => {
-    if (disabled || height <= 0) {
+  const setFromPageY = (pageY: number) => {
+    if (disabled) {
       return;
     }
-    const position = 1 - event.nativeEvent.locationY / height;
-    const speed = Math.round(Math.min(1, Math.max(0, position)) * max);
+    const speed = sliderSpeed(pageY - top.current, height, max);
     if (speed !== value) {
       onChange(speed);
     }
+  };
+
+  const onGrant = (event: GestureResponderEvent) => {
+    top.current = event.nativeEvent.pageY - event.nativeEvent.locationY;
+    setFromPageY(event.nativeEvent.pageY);
   };
 
   return (
@@ -57,8 +66,10 @@ export const SpeedSlider = ({
       onMoveShouldSetResponder={() => !disabled}
       // Keep the gesture even if a parent would like to scroll.
       onResponderTerminationRequest={() => false}
-      onResponderGrant={setFromTouch}
-      onResponderMove={setFromTouch}
+      onResponderGrant={onGrant}
+      onResponderMove={(event) => {
+        setFromPageY(event.nativeEvent.pageY);
+      }}
       style={[
         styles.track,
         {

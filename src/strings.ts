@@ -13,7 +13,8 @@ export const strings = {
   library: {
     title: 'Vehicles',
     pickTitle: 'Choose a loco',
-    entries: (count: number) => (count === 1 ? '1 loco' : `${count} locos`),
+    entries: (count: number) =>
+      count === 1 ? '1 vehicle' : `${count} vehicles`,
     search: 'Search by name or address',
     add: 'Add loco',
     edit: 'Arrange',
@@ -25,6 +26,10 @@ export const strings = {
     empty: 'No locos yet. Add your first loco with the + button.',
     noMatches: 'No loco matches the search.',
     driveByAddress: 'Drive by address',
+    addConsist: 'Add consist',
+    consistBadge: 'Consist',
+    consistMembers: (count: number) =>
+      count === 1 ? '1 loco' : `${count} locos`,
     loadError: 'The loco library could not be opened.',
     noPhoto: 'No photo',
   },
@@ -79,6 +84,42 @@ export const strings = {
       functionNumberDuplicate: 'Each function number can be used only once.',
       functionSlotInvalid: 'A function is outside the function pages.',
       functionSlotDuplicate: 'Two functions are in the same place.',
+    },
+  },
+
+  consistEditor: {
+    newTitle: 'New consist',
+    name: 'Name',
+    members: 'Locos, front to back',
+    membersHint:
+      'The first loco leads: its functions and speed are shown when driving.',
+    addMember: 'Add loco',
+    chooseMember: 'Choose a loco to add',
+    noLocosLeft: 'All locos in the library are already in this consist.',
+    reversed: 'Coupled facing backwards',
+    reversedHint: 'This loco drives in the opposite direction.',
+    speedOffset: 'Speed difference',
+    speedOffsetValue: (offset: number, steps: number) =>
+      `${offset > 0 ? '+' : ''}${offset} of ${steps} speed steps`,
+    speedOffsetHint:
+      'Makes this loco a little faster or slower, so that all locos run at the same speed. Never moves a standing train.',
+    slower: 'Slower',
+    faster: 'Faster',
+    slowerSymbol: '−',
+    fasterSymbol: '+',
+    moveUp: 'Move forward in the train',
+    moveDown: 'Move back in the train',
+    removeMember: 'Remove from consist',
+    delete: 'Delete consist',
+    deleteTitle: 'Delete this consist?',
+    deleteMessage: (name: string) =>
+      `“${name}” will be deleted. Its locos stay in the library.`,
+    notFound: 'This consist no longer exists.',
+    problems: {
+      nameMissing: 'Enter a name.',
+      membersMissing: 'Add at least one loco.',
+      memberDuplicate: 'Each loco can be in the consist only once.',
+      offsetInvalid: 'Speed differences must be from −30 to +30.',
     },
   },
 
@@ -212,6 +253,15 @@ export const strings = {
     current: 'Now driving',
     addressOnly: (address: number) => `Address ${address}`,
     noLoco: 'No loco on this throttle yet.',
+    consistEmpty: 'This consist has no locos. Add locos to it in Vehicles.',
+    members: 'Locos in this consist',
+    memberFunctions: (name: string) => `Show functions of ${name}`,
+    conflictTitle: 'Loco already being driven',
+    conflictMessage: (addresses: number[]) =>
+      `${addresses.length === 1 ? 'Loco' : 'Locos'} ${addresses.join(', ')} ${
+        addresses.length === 1 ? 'is' : 'are'
+      } also on the other throttle. Driving a loco alone and in a consist at the same time can make it run the wrong way.`,
+    driveAnyway: 'Drive anyway',
   },
 
   settings: {

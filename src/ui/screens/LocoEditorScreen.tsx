@@ -14,7 +14,7 @@ import {emptyDetails, Loco, LocoDraft, LocoFunction} from '../../library/types';
 import {DraftProblem} from '../../library/validation';
 import {SpeedSteps} from '../../protocol';
 import {useLibraryStore} from '../../store/libraryStore';
-import {forgetLoco} from '../../store/settingsStore';
+import {forgetVehicle} from '../../store/settingsStore';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 import {useServices} from '../AppServices';
@@ -201,7 +201,7 @@ export const LocoEditorScreen = () => {
             library
               .remove(locoId)
               .then(() => {
-                forgetLoco(locoId);
+                forgetVehicle({kind: 'loco', id: locoId});
                 discardSessionPhotos(null);
                 leave();
               })

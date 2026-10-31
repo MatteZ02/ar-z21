@@ -4,10 +4,14 @@ import {
   SPLIT_MIN_WIDTH,
   throttleCount,
 } from '../../ui/layout';
+import {Consist, emptyDetails, Loco} from '../../library/types';
 import {
+  consistConflicts,
   DEFAULT_THROTTLES,
   migrateSettings,
-  withoutLoco,
+  selectionAddresses,
+  ThrottleSelection,
+  withoutVehicle,
   withSelection,
 } from '../throttleSelection';
 
@@ -20,13 +24,20 @@ describe('throttle selections', () => {
     expect(next).toEqual([DEFAULT_THROTTLES[0], {kind: 'library', locoId: 7}]);
   });
 
-  it('clears a deleted loco from every throttle', () => {
+  it('clears a deleted loco or consist from every throttle', () => {
     const both = [
       {kind: 'library' as const, locoId: 7},
-      {kind: 'library' as const, locoId: 7},
+      {kind: 'consist' as const, consistId: 7},
     ];
-    expect(withoutLoco(both, 7)).toEqual([{kind: 'none'}, {kind: 'none'}]);
-    expect(withoutLoco(both, 8)).toEqual(both);
+    expect(withoutVehicle(both, {kind: 'loco', id: 7})).toEqual([
+      {kind: 'none'},
+      both[1],
+    ]);
+    expect(withoutVehicle(both, {kind: 'consist', id: 7})).toEqual([
+      both[0],
+      {kind: 'none'},
+    ]);
+    expect(withoutVehicle(both, {kind: 'loco', id: 8})).toEqual(both);
   });
 });
 
@@ -39,6 +50,7 @@ describe('settings migration', () => {
     expect(migrated).toEqual({
       host: '10.0.0.2',
       throttles: [{kind: 'library', locoId: 5}, {kind: 'none'}],
+      recent: [],
     });
   });
 
@@ -60,9 +72,21 @@ describe('settings migration', () => {
     ]);
   });
 
+  it('turns version 2 recent loco ids into recent entries', () => {
+    expect(
+      migrateSettings({throttles: DEFAULT_THROTTLES, recentLocoIds: [4, 2]}, 2),
+    ).toEqual({
+      throttles: DEFAULT_THROTTLES,
+      recent: [
+        {kind: 'loco', id: 4},
+        {kind: 'loco', id: 2},
+      ],
+    });
+  });
+
   it('leaves current settings alone', () => {
-    const current = {throttles: DEFAULT_THROTTLES};
-    expect(migrateSettings(current, 2)).toBe(current);
+    const current = {throttles: DEFAULT_THROTTLES, recent: []};
+    expect(migrateSettings(current, 3)).toBe(current);
   });
 });
 
@@ -82,5 +106,68 @@ describe('layout', () => {
     expect(functionPagesPerView(2 * page + 8, 6, 8, 3)).toBe(2);
     expect(functionPagesPerView(5000, 6, 8, 3)).toBe(3);
     expect(functionPagesPerView(5000, 6, 8, 1)).toBe(1);
+  });
+});
+
+describe('consist conflicts between throttles', () => {
+  const loco = (id: number, address: number): Loco => ({
+    id,
+    name: `Loco ${id}`,
+    address,
+    speedSteps: 128,
+    maxSpeed: 100,
+    speedDisplay: 'kmh',
+    photo: null,
+    notes: '',
+    details: emptyDetails(),
+    functions: [],
+  });
+  const locos = [loco(1, 6503), loco(2, 6519), loco(3, 95)];
+  const consists: Consist[] = [
+    {
+      id: 10,
+      name: 'Double vectron',
+      photo: null,
+      members: [
+        {locoId: 1, reversed: false, speedOffset: 0},
+        {locoId: 2, reversed: true, speedOffset: 0},
+      ],
+    },
+  ];
+  const consist: ThrottleSelection = {kind: 'consist', consistId: 10};
+
+  it('lists the addresses a throttle drives', () => {
+    expect(selectionAddresses(consist, locos, consists)).toEqual([6503, 6519]);
+    expect(
+      selectionAddresses({kind: 'library', locoId: 3}, locos, consists),
+    ).toEqual([95]);
+    expect(selectionAddresses({kind: 'none'}, locos, consists)).toEqual([]);
+  });
+
+  it('finds a consist member driven alone on the other throttle', () => {
+    expect(
+      consistConflicts(consist, {kind: 'library', locoId: 2}, locos, consists),
+    ).toEqual([6519]);
+    expect(
+      consistConflicts(
+        consist,
+        {kind: 'address', address: 6503, speedSteps: 128},
+        locos,
+        consists,
+      ),
+    ).toEqual([6503]);
+    // And the other way round.
+    expect(
+      consistConflicts({kind: 'library', locoId: 1}, consist, locos, consists),
+    ).toEqual([6503]);
+  });
+
+  it('allows the same loco, or the same consist, on both throttles', () => {
+    const single: ThrottleSelection = {kind: 'library', locoId: 1};
+    expect(consistConflicts(single, single, locos, consists)).toEqual([]);
+    expect(consistConflicts(consist, consist, locos, consists)).toEqual([]);
+    expect(
+      consistConflicts(consist, {kind: 'library', locoId: 3}, locos, consists),
+    ).toEqual([]);
   });
 });

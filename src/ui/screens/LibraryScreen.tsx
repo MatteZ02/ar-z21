@@ -9,11 +9,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {Loco} from '../../library/types';
+import {VehicleRef} from '../../library/types';
 import {useLibraryStore} from '../../store/libraryStore';
 import {
   chooseAddressToDrive,
-  chooseLocoToDrive,
   useThrottleSelection,
 } from '../../store/settingsStore';
 import {isThrottleIndex, ThrottleIndex} from '../../store/throttleSelection';
@@ -25,18 +24,31 @@ import {Icon} from '../components/Icon';
 import {LocoPhoto} from '../components/LocoPhoto';
 import {LocoPicker} from '../components/LocoPicker';
 import {ScreenFrame} from '../components/ScreenFrame';
+import {pickVehicle} from '../pickVehicle';
 
-const matches = (loco: Loco, query: string): boolean => {
+// One row of the vehicle list: a loco or a consist.
+type Entry = {
+  ref: VehicleRef;
+  name: string;
+  photo: string | null;
+  // The loco's address, or the consist's lead loco's.
+  address: number | undefined;
+  // Consists: number of locos.
+  memberCount?: number;
+};
+
+const matches = (entry: Entry, query: string): boolean => {
   const text = query.trim().toLowerCase();
   return (
     text === '' ||
-    loco.name.toLowerCase().includes(text) ||
-    String(loco.address).startsWith(text)
+    entry.name.toLowerCase().includes(text) ||
+    (entry.address !== undefined && String(entry.address).startsWith(text))
   );
 };
 
-// The loco library, after the Roco app's "Railed Vehicles" list. With
-// ?mode=pick it chooses the loco for the drive screen instead of editing.
+// The vehicle library (locos and consists), after the Roco app's "Railed
+// Vehicles" list. With ?mode=pick it chooses what a throttle drives instead
+// of editing.
 export const LibraryScreen = () => {
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
@@ -48,6 +60,8 @@ export const LibraryScreen = () => {
     ? throttleParam
     : 0;
   const locos = useLibraryStore((state) => state.locos);
+  const consists = useLibraryStore((state) => state.consists);
+  const order = useLibraryStore((state) => state.order);
   const loaded = useLibraryStore((state) => state.loaded);
   const error = useLibraryStore((state) => state.error);
   const [query, setQuery] = useState('');
@@ -58,9 +72,45 @@ export const LibraryScreen = () => {
   const pickerAddress = selection.kind === 'address' ? selection.address : 3;
   const pickerSteps = selection.kind === 'address' ? selection.speedSteps : 128;
 
+  const entries = useMemo(
+    () =>
+      order.flatMap((ref): Entry[] => {
+        if (ref.kind === 'loco') {
+          const loco = locos.find((entry) => entry.id === ref.id);
+          return loco === undefined
+            ? []
+            : [
+                {
+                  ref,
+                  name: loco.name,
+                  photo: loco.photo,
+                  address: loco.address,
+                },
+              ];
+        }
+        const consist = consists.find((entry) => entry.id === ref.id);
+        if (consist === undefined) {
+          return [];
+        }
+        const lead = locos.find(
+          (entry) => entry.id === consist.members[0]?.locoId,
+        );
+        return [
+          {
+            ref,
+            name: consist.name,
+            photo: consist.photo ?? lead?.photo ?? null,
+            address: lead?.address,
+            memberCount: consist.members.length,
+          },
+        ];
+      }),
+    [order, locos, consists],
+  );
   const shown = useMemo(
-    () => (arranging ? locos : locos.filter((loco) => matches(loco, query))),
-    [arranging, locos, query],
+    () =>
+      arranging ? entries : entries.filter((entry) => matches(entry, query)),
+    [arranging, entries, query],
   );
 
   const run = (task: Promise<void>) => {
@@ -69,19 +119,26 @@ export const LibraryScreen = () => {
     });
   };
 
-  const open = (loco: Loco) => {
+  const open = (entry: Entry) => {
     if (picking) {
-      chooseLocoToDrive(throttle, loco.id);
-      router.back();
+      pickVehicle(throttle, entry.ref, () => {
+        router.back();
+      });
+    } else if (entry.ref.kind === 'loco') {
+      router.push(`/library/${entry.ref.id}`);
     } else {
-      router.push(`/library/${loco.id}`);
+      router.push(`/consist/${entry.ref.id}`);
     }
   };
 
-  const row = ({item, index}: {item: Loco; index: number}) => (
+  const row = ({item, index}: {item: Entry; index: number}) => (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${item.address} ${item.name}`}
+      accessibilityLabel={
+        item.memberCount === undefined
+          ? `${item.address} ${item.name}`
+          : `${strings.library.consistBadge}: ${item.name}`
+      }
       disabled={arranging}
       onPress={() => {
         open(item);
@@ -102,15 +159,36 @@ export const LibraryScreen = () => {
         style={styles.thumbnail}
       />
       <View style={styles.text}>
-        <Text
-          style={{
-            color: colors.textSecondary,
-            fontSize: fontSizes.large,
-            fontWeight: '700',
-          }}
-        >
-          {item.address}
-        </Text>
+        {item.memberCount === undefined ? (
+          <Text
+            style={{
+              color: colors.textSecondary,
+              fontSize: fontSizes.large,
+              fontWeight: '700',
+            }}
+          >
+            {item.address}
+          </Text>
+        ) : (
+          // Consists are marked with a label and an icon, as Roco's "Train".
+          <View style={[styles.badge, {gap: spacing.xs}]}>
+            <Icon
+              name="link-variant"
+              size={fontSizes.large}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={{
+                color: colors.textSecondary,
+                fontSize: fontSizes.body,
+                fontWeight: '700',
+              }}
+            >
+              {strings.library.consistBadge} ·{' '}
+              {strings.library.consistMembers(item.memberCount)}
+            </Text>
+          </View>
+        )}
         <Text
           numberOfLines={2}
           style={{color: colors.textPrimary, fontSize: fontSizes.body}}
@@ -136,7 +214,7 @@ export const LibraryScreen = () => {
                 accessibilityState={{disabled}}
                 disabled={disabled}
                 onPress={() => {
-                  run(library.move({kind: 'loco', id: item.id}, direction));
+                  run(library.move(item.ref, direction));
                 }}
                 style={[
                   styles.moveButton,
@@ -174,7 +252,7 @@ export const LibraryScreen = () => {
     ? strings.library.loadError
     : !loaded
       ? ''
-      : locos.length === 0
+      : entries.length === 0
         ? strings.library.empty
         : strings.library.noMatches;
 
@@ -184,7 +262,7 @@ export const LibraryScreen = () => {
     >
       <View style={{padding: spacing.md, gap: spacing.sm}}>
         <Text style={{color: colors.textPrimary, fontSize: fontSizes.large}}>
-          {strings.library.entries(locos.length)}
+          {strings.library.entries(entries.length)}
         </Text>
         {!arranging && (
           <View
@@ -233,7 +311,7 @@ export const LibraryScreen = () => {
 
       <FlatList
         data={shown}
-        keyExtractor={(loco) => String(loco.id)}
+        keyExtractor={(entry) => `${entry.ref.kind}-${entry.ref.id}`}
         renderItem={row}
         ListEmptyComponent={
           <Text
@@ -264,7 +342,7 @@ export const LibraryScreen = () => {
             label={arranging ? strings.library.done : strings.library.edit}
             icon={arranging ? 'check' : 'sort-numeric-ascending'}
             variant="outline"
-            disabled={locos.length < 2 && !arranging}
+            disabled={entries.length < 2 && !arranging}
             onPress={() => {
               setArranging(!arranging);
             }}
@@ -289,14 +367,26 @@ export const LibraryScreen = () => {
               />
             </>
           ) : (
-            <AppButton
-              label={strings.library.add}
-              icon="plus"
-              onPress={() => {
-                router.push('/library/new');
-              }}
-              style={styles.flex}
-            />
+            <>
+              <AppButton
+                label={strings.library.addConsist}
+                icon="link-variant"
+                variant="outline"
+                disabled={locos.length === 0}
+                onPress={() => {
+                  router.push('/consist/new');
+                }}
+                style={styles.flex}
+              />
+              <AppButton
+                label={strings.library.add}
+                icon="plus"
+                onPress={() => {
+                  router.push('/library/new');
+                }}
+                style={styles.flex}
+              />
+            </>
           )}
         </View>
       )}
@@ -331,6 +421,10 @@ const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   moveButton: {
     alignItems: 'center',

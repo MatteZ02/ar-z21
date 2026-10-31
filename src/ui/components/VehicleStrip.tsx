@@ -1,24 +1,36 @@
 import {Pressable, ScrollView, StyleSheet, View} from 'react-native';
-import {Loco} from '../../library/types';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 import {Icon} from './Icon';
 import {LocoPhoto} from './LocoPhoto';
 
-type Props = {
-  locos: Loco[];
-  currentId: number | null;
-  onPick: (loco: Loco) => void;
-  onOpenLibrary: () => void;
+export type StripItem = {
+  key: string;
+  name: string;
+  photo: string | null;
+  address?: number;
 };
 
-// Bottom strip of the drive screen, as in the Roco Z21 app: a button for the
-// whole library, then the recently driven locos for quick switching.
-export const RecentLocoStrip = ({
-  locos,
-  currentId,
+type Props = {
+  items: StripItem[];
+  currentKey: string | null;
+  onPick: (key: string) => void;
+  // Shows the library button first, as in the Roco app's bottom strip.
+  onOpenLibrary?: () => void;
+  // Accessibility label of the strip and of each item.
+  label: string;
+  itemLabel: (item: StripItem, current: boolean) => string;
+};
+
+// A horizontal strip of photos: the recently driven locos and consists
+// below the throttle, or the members of a consist above it.
+export const VehicleStrip = ({
+  items,
+  currentKey,
   onPick,
   onOpenLibrary,
+  label,
+  itemLabel,
 }: Props) => {
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   return (
@@ -33,41 +45,43 @@ export const RecentLocoStrip = ({
         },
       ]}
     >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={strings.drive.library}
-        onPress={onOpenLibrary}
-        style={({pressed}) => [
-          styles.library,
-          {
-            width: minTouchTarget,
-            minHeight: minTouchTarget,
-            borderRadius: radii.md,
-            opacity: pressed ? 0.6 : 1,
-          },
-        ]}
-      >
-        <Icon name="view-grid" size={fontSizes.display} color={colors.accent} />
-      </Pressable>
+      {onOpenLibrary !== undefined && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={strings.drive.library}
+          onPress={onOpenLibrary}
+          style={({pressed}) => [
+            styles.library,
+            {
+              width: minTouchTarget,
+              minHeight: minTouchTarget,
+              borderRadius: radii.md,
+              opacity: pressed ? 0.6 : 1,
+            },
+          ]}
+        >
+          <Icon
+            name="view-grid"
+            size={fontSizes.display}
+            color={colors.accent}
+          />
+        </Pressable>
+      )}
       <ScrollView
         horizontal
-        accessibilityLabel={strings.drive.recent}
+        accessibilityLabel={label}
         contentContainerStyle={{gap: spacing.sm}}
       >
-        {locos.map((loco) => {
-          const current = loco.id === currentId;
+        {items.map((item) => {
+          const current = item.key === currentKey;
           return (
             <Pressable
-              key={loco.id}
+              key={item.key}
               accessibilityRole="button"
-              accessibilityLabel={
-                current
-                  ? `${strings.drive.current}: ${loco.name}`
-                  : strings.drive.switchTo(loco.name)
-              }
+              accessibilityLabel={itemLabel(item, current)}
               accessibilityState={{selected: current}}
               onPress={() => {
-                onPick(loco);
+                onPick(item.key);
               }}
               style={({pressed}) => [
                 styles.item,
@@ -82,7 +96,7 @@ export const RecentLocoStrip = ({
                 },
               ]}
             >
-              <LocoPhoto photo={loco.photo} address={loco.address} />
+              <LocoPhoto photo={item.photo} address={item.address} />
             </Pressable>
           );
         })}

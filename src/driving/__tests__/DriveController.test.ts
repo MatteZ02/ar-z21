@@ -92,6 +92,42 @@ describe('DriveController', () => {
     expect(live()).toBeUndefined();
   });
 
+  it('drives several locos at once with their own speed and direction', () => {
+    const {connection, controller, live} = setup();
+    controller.watch(3);
+    controller.watch(4, 28);
+    controller.driveLocos([
+      {address: 3, speed: 60, forward: true},
+      {address: 4, speed: 99, forward: false},
+    ]);
+    expect(connection.drive).toHaveBeenCalledWith({
+      address: 3,
+      steps: 128,
+      speed: 60,
+      forward: true,
+    });
+    // Clamped to the 28-step range.
+    expect(connection.drive).toHaveBeenCalledWith({
+      address: 4,
+      steps: 28,
+      speed: 28,
+      forward: false,
+    });
+    expect(live(4)).toMatchObject({speed: 28, forward: false});
+  });
+
+  it('emergency-stops several locos in one call', () => {
+    const {connection, controller} = setup();
+    controller.watch(3);
+    controller.watch(4, 28);
+    controller.emergencyStopLocos([3, 4, 5]);
+    expect(connection.emergencyStopLocos).toHaveBeenCalledTimes(1);
+    expect(connection.emergencyStopLocos).toHaveBeenCalledWith([
+      {address: 3, steps: 128, forward: true},
+      {address: 4, steps: 28, forward: true},
+    ]);
+  });
+
   it('shows reports from the central unit', () => {
     const {controller, live, emitReport} = setup();
     controller.watch(3);

@@ -2,14 +2,16 @@ import type {SQLiteStorage} from 'expo-sqlite/kv-store';
 import {create} from 'zustand';
 import {createJSONStorage, persist, StateStorage} from 'zustand/middleware';
 import {DEFAULT_STOP_MODE, StopMode} from '../driving/globalStop';
-import {withRecent} from '../library/recent';
+import {withoutRecent, withRecent} from '../library/recent';
+import {VehicleRef} from '../library/types';
 import {SpeedSteps, Z21_DEFAULT_PORT} from '../protocol';
 import {
   DEFAULT_THROTTLES,
   migrateSettings,
   ThrottleIndex,
+  selectionFor,
   ThrottleSelection,
-  withoutLoco,
+  withoutVehicle,
   withSelection,
 } from './throttleSelection';
 
@@ -22,8 +24,8 @@ export type Settings = {
   stopMode: StopMode;
   // What each throttle drives (index: ThrottleIndex).
   throttles: ThrottleSelection[];
-  // Library locos driven recently, latest first (quick-switch strip).
-  recentLocoIds: number[];
+  // Locos and consists driven recently, latest first (quick-switch strip).
+  recent: VehicleRef[];
 };
 
 type SettingsStore = Settings & {
@@ -77,14 +79,14 @@ export const useSettingsStore = create<SettingsStore>()(
       port: Z21_DEFAULT_PORT,
       stopMode: DEFAULT_STOP_MODE,
       throttles: DEFAULT_THROTTLES,
-      recentLocoIds: [],
+      recent: [],
       update: (changes) => {
         set(changes);
       },
     }),
     {
       name: 'settings',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => storage),
       partialize: ({update: _update, ...settings}) => settings,
       migrate: (persisted, version) =>
@@ -99,18 +101,16 @@ const NO_SELECTION: ThrottleSelection = {kind: 'none'};
 export const useThrottleSelection = (index: ThrottleIndex): ThrottleSelection =>
   useSettingsStore((state) => state.throttles[index] ?? NO_SELECTION);
 
-// Puts a library loco on a throttle and remembers it as recently driven.
-export const chooseLocoToDrive = (
+// Puts a library loco or consist on a throttle and remembers it as
+// recently driven.
+export const chooseVehicleToDrive = (
   index: ThrottleIndex,
-  locoId: number,
+  ref: VehicleRef,
 ): void => {
   const settings = useSettingsStore.getState();
   settings.update({
-    throttles: withSelection(settings.throttles, index, {
-      kind: 'library',
-      locoId,
-    }),
-    recentLocoIds: withRecent(settings.recentLocoIds, locoId),
+    throttles: withSelection(settings.throttles, index, selectionFor(ref)),
+    recent: withRecent(settings.recent, ref),
   });
 };
 
@@ -130,11 +130,11 @@ export const chooseAddressToDrive = (
   });
 };
 
-// Forgets a deleted loco everywhere in the settings.
-export const forgetLoco = (locoId: number): void => {
+// Forgets a deleted loco or consist everywhere in the settings.
+export const forgetVehicle = (ref: VehicleRef): void => {
   const settings = useSettingsStore.getState();
   settings.update({
-    throttles: withoutLoco(settings.throttles, locoId),
-    recentLocoIds: settings.recentLocoIds.filter((id) => id !== locoId),
+    throttles: withoutVehicle(settings.throttles, ref),
+    recent: withoutRecent(settings.recent, ref),
   });
 };

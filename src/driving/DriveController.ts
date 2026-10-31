@@ -145,13 +145,51 @@ export class DriveController {
 
   // Immediate stop of one loco, ignoring momentum.
   emergencyStopLoco(address: number): void {
-    const loco = this.locos.get(address);
-    if (loco === undefined) {
-      return;
+    this.emergencyStopLocos([address]);
+  }
+
+  // Immediate stop of several locos (all members of a consist) in one
+  // datagram, ignoring speed differences (brief §6.7).
+  emergencyStopLocos(addresses: number[]): void {
+    const targets = addresses.flatMap((address) => {
+      const loco = this.locos.get(address);
+      if (loco === undefined) {
+        return [];
+      }
+      const {forward} = displayedLoco(loco.report, loco.intent);
+      this.change(address, loco, {kind: 'emergencyStop'});
+      return [{address, steps: loco.steps, forward}];
+    });
+    if (targets.length > 0) {
+      this.connection.emergencyStopLocos(targets);
     }
-    const {forward} = displayedLoco(loco.report, loco.intent);
-    this.change(address, loco, {kind: 'emergencyStop'});
-    this.connection.emergencyStopLocos([{address, steps: loco.steps, forward}]);
+  }
+
+  // Sets speed and direction of several locos at once (a consist). The drive
+  // throttle sends them in the same datagram.
+  driveLocos(drives: {address: number; speed: number; forward: boolean}[]) {
+    for (const {address, speed, forward} of drives) {
+      const loco = this.locos.get(address);
+      if (loco === undefined) {
+        continue;
+      }
+      const clamped = Math.max(
+        0,
+        Math.min(maxSpeedStep(loco.steps), Math.round(speed)),
+      );
+      loco.intent = applyChange(
+        loco.intent,
+        {kind: 'direction', forward},
+        this.now(),
+      );
+      this.sendDrive(
+        address,
+        loco,
+        {kind: 'speed', speed: clamped},
+        clamped,
+        forward,
+      );
+    }
   }
 
   setFunction(address: number, index: number, on: boolean): void {

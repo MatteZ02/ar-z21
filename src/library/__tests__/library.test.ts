@@ -7,7 +7,7 @@ import {
   usedPages,
 } from '../functionSlots';
 import {functionIcon, isFunctionIconId} from '../icons';
-import {existingRecent, MAX_RECENT_LOCOS, withRecent} from '../recent';
+import {MAX_RECENT, withoutRecent, withRecent} from '../recent';
 import {shownSpeed} from '../speedDisplay';
 import {emptyDetails, LocoDraft, LocoFunction} from '../types';
 import {validateDraft} from '../validation';
@@ -152,19 +152,33 @@ describe('function icons', () => {
   });
 });
 
-describe('recent locos', () => {
+describe('recent vehicles', () => {
+  const loco = (id: number) => ({kind: 'loco' as const, id});
+  const consist = (id: number) => ({kind: 'consist' as const, id});
+
   it('puts the latest first without duplicates', () => {
-    expect(withRecent([3, 2, 1], 2)).toEqual([2, 3, 1]);
-    expect(withRecent([], 7)).toEqual([7]);
+    expect(withRecent([loco(3), loco(2), loco(1)], loco(2))).toEqual([
+      loco(2),
+      loco(3),
+      loco(1),
+    ]);
+    expect(withRecent([], consist(7))).toEqual([consist(7)]);
+  });
+
+  it('tells locos and consists apart', () => {
+    expect(withRecent([loco(1)], consist(1))).toEqual([consist(1), loco(1)]);
   });
 
   it('keeps at most the limit', () => {
-    const many = Array.from({length: MAX_RECENT_LOCOS}, (_, i) => i);
-    expect(withRecent(many, 99)).toHaveLength(MAX_RECENT_LOCOS);
-    expect(withRecent(many, 99)[0]).toBe(99);
+    const many = Array.from({length: MAX_RECENT}, (_, i) => loco(i));
+    expect(withRecent(many, loco(99))).toHaveLength(MAX_RECENT);
+    expect(withRecent(many, loco(99))[0]).toEqual(loco(99));
   });
 
-  it('forgets deleted locos', () => {
-    expect(existingRecent([4, 5, 6], new Set([4, 6]))).toEqual([4, 6]);
+  it('forgets deleted entries', () => {
+    expect(withoutRecent([loco(4), consist(4), loco(6)], loco(4))).toEqual([
+      consist(4),
+      loco(6),
+    ]);
   });
 });

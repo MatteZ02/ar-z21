@@ -6,12 +6,16 @@ import {Icon, IconName} from '../components/Icon';
 import {ScreenFrame} from '../components/ScreenFrame';
 
 // Start screen, after the Roco Z21 app's main menu: a list of sections and a
-// large button to start driving. Vehicles (the library) comes in Phase 3.
+// large button to start driving.
 export const MenuScreen = () => {
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
 
-  const row = (icon: IconName, label: string, route: '/settings') => (
+  const row = (
+    icon: IconName,
+    label: string,
+    route: '/settings' | '/library',
+  ) => (
     <Pressable
       accessibilityRole="button"
       onPress={() => {
@@ -42,6 +46,7 @@ export const MenuScreen = () => {
           {padding: spacing.lg, gap: spacing.lg},
         ]}
       >
+        {row('train-variant', strings.menu.vehicles, '/library')}
         {row('cog', strings.menu.settings, '/settings')}
         <Pressable
           accessibilityRole="button"

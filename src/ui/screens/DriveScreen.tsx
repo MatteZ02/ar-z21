@@ -1,16 +1,14 @@
 import {useKeepAwake} from 'expo-keep-awake';
-import {useEffect, useState} from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import {useRouter} from 'expo-router';
+import {useEffect, useMemo, useRef} from 'react';
+import {StyleSheet, Text, useWindowDimensions, View} from 'react-native';
+import {defaultFunctions} from '../../library/functionSlots';
+import {shownSpeed} from '../../library/speedDisplay';
 import {maxSpeedStep} from '../../protocol';
 import {useConnectionStore} from '../../store/connectionStore';
+import {useLibraryStore} from '../../store/libraryStore';
 import {useLiveLoco} from '../../store/locoStore';
-import {useSettingsStore} from '../../store/settingsStore';
+import {chooseLocoToDrive, useSettingsStore} from '../../store/settingsStore';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 import {useServices} from '../AppServices';
@@ -18,46 +16,82 @@ import {AppButton} from '../components/AppButton';
 import {DirectionControl} from '../components/DirectionControl';
 import {FunctionGrid} from '../components/FunctionGrid';
 import {Icon} from '../components/Icon';
-import {LocoPicker} from '../components/LocoPicker';
+import {LocoPhoto} from '../components/LocoPhoto';
+import {RecentLocoStrip} from '../components/RecentLocoStrip';
 import {ScreenFrame} from '../components/ScreenFrame';
 import {SpeedSlider} from '../components/SpeedSlider';
 import {feedback} from '../feedback';
 
-// F0..F28. F29..F31 need firmware 1.42 and come with the library.
-const FUNCTIONS = Array.from({length: 29}, (_, index) => index);
+// A plain address (not in the library) gets F0..F28, three pages.
+const ADDRESS_ONLY_FUNCTIONS = defaultFunctions(29);
 
 // Single throttle, laid out like the Roco Z21 app's driving screen:
-// functions on the left; speed, direction, loco and loco STOP on the right.
+// functions on the left; speed, slider, direction around the loco's photo
+// and the loco's STOP on the right; recently driven locos at the bottom.
 export const DriveScreen = () => {
   useKeepAwake();
   const {colors, spacing, fontSizes, minTouchTarget, radii} = useTheme();
+  const router = useRouter();
   const {controller} = useServices();
-  const address = useSettingsStore((state) => state.locoAddress);
-  const configuredSteps = useSettingsStore((state) => state.locoSpeedSteps);
-  const updateSettings = useSettingsStore((state) => state.update);
+  const driveLocoId = useSettingsStore((state) => state.driveLocoId);
+  const plainAddress = useSettingsStore((state) => state.locoAddress);
+  const plainSteps = useSettingsStore((state) => state.locoSpeedSteps);
+  const recentIds = useSettingsStore((state) => state.recentLocoIds);
+  const locos = useLibraryStore((state) => state.locos);
   const connected = useConnectionStore((state) => state.state === 'connected');
-  const loco = useLiveLoco(address);
-  const [picking, setPicking] = useState(false);
   const {width, height} = useWindowDimensions();
   const landscape = width > height;
 
+  // The library loco, if one is chosen and still exists.
+  const libraryLoco = locos.find((loco) => loco.id === driveLocoId);
+  const address = libraryLoco?.address ?? plainAddress;
+  const configuredSteps = libraryLoco?.speedSteps ?? plainSteps;
+  const functions = libraryLoco?.functions ?? ADDRESS_ONLY_FUNCTIONS;
+  const live = useLiveLoco(address);
+
+  const recentLocos = useMemo(
+    () =>
+      recentIds
+        .map((id) => locos.find((loco) => loco.id === id))
+        .filter((loco) => loco !== undefined),
+    [recentIds, locos],
+  );
+
   // Subscribe per address only: changing the speed steps of the same loco
-  // must not re-subscribe, so they are read here rather than depended on.
+  // must not re-subscribe, so they are read from a ref, not depended on.
+  const stepsRef = useRef(configuredSteps);
+  stepsRef.current = configuredSteps;
   useEffect(
-    () => controller.watch(address, useSettingsStore.getState().locoSpeedSteps),
+    () => controller.watch(address, stepsRef.current),
     [controller, address],
   );
   useEffect(() => {
     controller.setSpeedSteps(address, configuredSteps);
   }, [controller, address, configuredSteps]);
 
-  const steps = loco?.speedSteps ?? configuredSteps;
+  const steps = live?.speedSteps ?? configuredSteps;
   const max = maxSpeedStep(steps);
-  const speed = loco?.speed ?? 0;
-  const forward = loco?.forward ?? true;
+  const speed = live?.speed ?? 0;
+  const forward = live?.forward ?? true;
   const disabled = !connected;
 
-  const textStyle = {color: colors.textPrimary, fontSize: fontSizes.body};
+  const speedText = (() => {
+    if (live?.emergencyStop) {
+      return strings.drive.emergencyStopped;
+    }
+    if (libraryLoco === undefined || libraryLoco.speedDisplay === 'step') {
+      return `${strings.drive.speedStep} ${speed} ${strings.drive.of} ${max}`;
+    }
+    const shown = shownSpeed(
+      speed,
+      steps,
+      libraryLoco.maxSpeed,
+      libraryLoco.speedDisplay,
+    );
+    return `${shown.value} ${
+      strings.drive.speedUnits[shown.unit === 'mph' ? 'mph' : 'kmh']
+    }`;
+  })();
 
   const slider = (
     <SpeedSlider
@@ -75,12 +109,14 @@ export const DriveScreen = () => {
       <View style={styles.columns}>
         <View style={styles.functions}>
           <FunctionGrid
-            functions={FUNCTIONS}
-            active={loco?.functions ?? []}
+            // A new page set for each loco.
+            key={libraryLoco?.id ?? `address-${address}`}
+            functions={functions}
+            active={live?.functions ?? []}
             disabled={disabled}
-            onToggle={(index, on) => {
+            onChange={(number, on) => {
               feedback.tap();
-              controller.setFunction(address, index, on);
+              controller.setFunction(address, number, on);
             }}
           />
         </View>
@@ -113,11 +149,9 @@ export const DriveScreen = () => {
                 {color: colors.accent, fontSize: fontSizes.title},
               ]}
             >
-              {loco?.emergencyStop
-                ? strings.drive.emergencyStopped
-                : `${strings.drive.speedStep} ${speed} ${strings.drive.of} ${max}`}
+              {speedText}
             </Text>
-            {loco?.shared && (
+            {live?.shared && (
               <View
                 accessible
                 accessibilityLabel={strings.drive.sharedHint}
@@ -157,18 +191,29 @@ export const DriveScreen = () => {
                 controller.setDirection(address, value);
               }}
             >
-              <Text style={[textStyle, styles.address]}>
-                {strings.drive.addressPrefix}
-                {address}
-              </Text>
-              <Text
-                style={{color: colors.textSecondary, fontSize: fontSizes.small}}
-              >
+              <LocoPhoto
+                photo={libraryLoco?.photo ?? null}
+                address={address}
+                style={styles.photo}
+              />
+            </DirectionControl>
+            <Text
+              numberOfLines={2}
+              style={[
+                styles.locoName,
+                {color: colors.textPrimary, fontSize: fontSizes.body},
+              ]}
+            >
+              {libraryLoco === undefined
+                ? strings.drive.addressOnly(address)
+                : `${strings.drive.addressPrefix}${address} – ${libraryLoco.name}`}
+              {'  '}
+              <Text style={{color: colors.textSecondary}}>
                 {forward ? strings.drive.forward : strings.drive.reverse}
               </Text>
-            </DirectionControl>
+            </Text>
 
-            {loco?.known === false && connected && (
+            {live?.known === false && connected && (
               <Text
                 style={{color: colors.textSecondary, fontSize: fontSizes.small}}
               >
@@ -190,43 +235,14 @@ export const DriveScreen = () => {
         </View>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${strings.drive.chooseLoco}: ${strings.drive.loco} ${address}`}
-        onPress={() => {
-          setPicking(true);
+      <RecentLocoStrip
+        locos={recentLocos}
+        currentId={libraryLoco?.id ?? null}
+        onPick={(loco) => {
+          chooseLocoToDrive(loco.id);
         }}
-        style={[
-          styles.picker,
-          {
-            minHeight: minTouchTarget,
-            gap: spacing.sm,
-            paddingHorizontal: spacing.md,
-            backgroundColor: colors.surface,
-            borderTopColor: colors.border,
-          },
-        ]}
-      >
-        <Icon name="train" size={fontSizes.title} color={colors.accent} />
-        <Text style={[textStyle, styles.flex]}>
-          {strings.drive.loco} {address} · {configuredSteps}{' '}
-          {strings.drive.speedSteps.toLowerCase()}
-        </Text>
-        <Text style={{color: colors.accent, fontSize: fontSizes.body}}>
-          {strings.drive.chooseLoco}
-        </Text>
-      </Pressable>
-
-      <LocoPicker
-        visible={picking}
-        address={address}
-        speedSteps={configuredSteps}
-        onCancel={() => {
-          setPicking(false);
-        }}
-        onChoose={(locoAddress, locoSpeedSteps) => {
-          setPicking(false);
-          updateSettings({locoAddress, locoSpeedSteps});
+        onOpenLibrary={() => {
+          router.push({pathname: '/library', params: {mode: 'pick'}});
         }}
       />
     </ScreenFrame>
@@ -257,15 +273,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     borderWidth: 1,
   },
-  address: {
+  photo: {
+    width: '100%',
+  },
+  locoName: {
+    textAlign: 'center',
     fontWeight: '700',
   },
   flex: {
     flex: 1,
-  },
-  picker: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: StyleSheet.hairlineWidth,
   },
 });

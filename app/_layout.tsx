@@ -7,7 +7,7 @@ import {AppServicesProvider} from '../src/ui/AppServices';
 // Keep the menu underneath when the app opens directly on another screen
 // (deep link, or a dev reload), so there is always a way back.
 export const unstable_settings = {
-  initialRouteName: 'index',
+  anchor: 'index',
 };
 
 // Screens draw their own header (ScreenFrame), which carries the global STOP.

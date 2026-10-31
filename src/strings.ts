@@ -87,6 +87,74 @@ export const strings = {
     },
   },
 
+  importer: {
+    title: 'Import from Roco Z21 app',
+    menuEntry: 'Import from Roco app',
+    intro:
+      'In the Roco Z21 app, export your layout (Settings → Layouts → Export) and save the .z21 file on this device. Then choose it here.',
+    choose: 'Choose export file',
+    reading: 'Reading the file…',
+    invalid:
+      'This file could not be read. Choose the .z21 file exported from the Roco Z21 app.',
+    found: (file: string, locos: number, consists: number) =>
+      `${file}: ${locos === 1 ? '1 loco' : `${locos} locos`} and ${
+        consists === 1 ? '1 consist' : `${consists} consists`
+      }.`,
+    duplicatesTitle: (count: number) =>
+      count === 1
+        ? '1 loco has an address that is already in your library'
+        : `${count} locos have an address that is already in your library`,
+    allDuplicates: 'For all of them',
+    choices: {skip: 'Skip', replace: 'Replace', keepBoth: 'Keep both'},
+    choiceHints: {
+      skip: 'Keep your loco; do not import this one.',
+      replace: 'Overwrite your loco with the imported one.',
+      keepBoth: 'Import it as an extra loco with the same address.',
+    },
+    existing: (name: string) => `In your library: ${name}`,
+    wagon: 'Wagon, imported as a loco',
+    summary: (
+      added: number,
+      replaced: number,
+      skipped: number,
+      consists: number,
+    ) =>
+      `Will add ${added}, replace ${replaced}, skip ${skipped} locos, and add ${consists} ${
+        consists === 1 ? 'consist' : 'consists'
+      }.`,
+    stepsNote:
+      'The Roco app does not save speed steps; new locos get 128 steps. You can change this per loco.',
+    start: 'Import',
+    importing: 'Importing… This can take a minute with many photos.',
+    doneTitle: 'Import finished',
+    done: (
+      added: number,
+      replaced: number,
+      skipped: number,
+      consists: number,
+    ) =>
+      `${added} added, ${replaced} replaced, ${skipped} skipped, ${consists} ${
+        consists === 1 ? 'consist' : 'consists'
+      } added.`,
+    problemsTitle: 'Not imported or changed',
+    issues: {
+      invalidAddress: (name: string, address: number | null) =>
+        `${name}: address ${address ?? 'missing'} is not a valid DCC address.`,
+      unsupportedType: (name: string) =>
+        `${name}: this kind of vehicle is not supported.`,
+      missingPhoto: (name: string) =>
+        `${name}: the photo is missing in the file.`,
+      unknownIcon: (name: string, icon: string) =>
+        `${name}: function icon "${icon}" is unknown; shown as a number.`,
+      functionSkipped: (name: string, number: number) =>
+        `${name}: function F${number} could not be placed.`,
+      missingMember: (name: string) =>
+        `${name}: a loco of this consist is missing in the file.`,
+      failed: (name: string) => `${name}: could not be saved.`,
+    },
+    toLibrary: 'Show vehicles',
+  },
+
   consistEditor: {
     newTitle: 'New consist',
     name: 'Name',

@@ -6,7 +6,7 @@ import {PhotoStore} from './LibraryService';
 // Photos are shrunk to this width before storing, so the library stays fast
 // on old devices (brief §6.4).
 export const PHOTO_MAX_WIDTH = 1024;
-const PHOTO_QUALITY = 0.8;
+export const PHOTO_QUALITY = 0.8;
 const PHOTO_DIRECTORY = 'photos';
 
 export type PhotoSource = 'camera' | 'library';
@@ -62,9 +62,14 @@ export const pickPhoto = async (source: PhotoSource): Promise<PickResult> => {
     format: SaveFormat.JPEG,
     compress: PHOTO_QUALITY,
   });
+  return {status: 'picked', name: await storeImageFile(saved.uri)};
+};
+
+// Moves a finished JPEG into the photo store; returns its stored name.
+export const storeImageFile = async (uri: string): Promise<string> => {
   const name = newName();
-  await new File(saved.uri).move(new File(directory(), name));
-  return {status: 'picked', name};
+  await new File(uri).move(new File(directory(), name));
+  return name;
 };
 
 export const filePhotoStore: PhotoStore = {

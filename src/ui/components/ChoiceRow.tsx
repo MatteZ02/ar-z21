@@ -4,7 +4,8 @@ import {useTheme} from '../../theme';
 type Props<T extends string | number> = {
   label: string;
   options: {value: T; label: string}[];
-  value: T;
+  // null: nothing selected (e.g. a "for all" row when choices differ).
+  value: T | null;
   onChange: (value: T) => void;
 };
 

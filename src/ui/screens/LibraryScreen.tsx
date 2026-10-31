@@ -307,6 +307,16 @@ export const LibraryScreen = () => {
             }}
           />
         )}
+        {!picking && !arranging && (
+          <AppButton
+            label={strings.importer.menuEntry}
+            icon="file-import"
+            variant="outline"
+            onPress={() => {
+              router.push('/import');
+            }}
+          />
+        )}
       </View>
 
       <FlatList

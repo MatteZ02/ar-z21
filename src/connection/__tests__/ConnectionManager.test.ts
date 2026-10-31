@@ -389,11 +389,13 @@ describe('emergency stop safety', () => {
     expect(current().takeSent()).toEqual(['06 00 40 00 80 80']);
   });
 
-  it('per-loco stop uses LAN_X_SET_LOCO_E_STOP on FW 1.43', async () => {
+  it('per-loco stop sends LAN_X_SET_LOCO_E_STOP and the drive e-stop on FW 1.43', async () => {
     const {manager, current} = await connected();
     current().receive(HWINFO_FW_143);
     manager.emergencyStopLocos([{address: 3, steps: 128, forward: true}]);
-    expect(current().takeSent()).toEqual(['08 00 40 00 92 00 03 91']);
+    expect(current().takeSent()).toEqual([
+      '08 00 40 00 92 00 03 91 0A 00 40 00 E4 13 00 03 81 75',
+    ]);
   });
 
   it('per-loco stop falls back to the e-stop speed value on older firmware', async () => {
@@ -414,7 +416,8 @@ describe('emergency stop safety', () => {
     ]);
     jest.advanceTimersByTime(THROTTLE_INTERVAL_MS * 3);
     expect(current().takeSent()).toEqual([
-      '08 00 40 00 92 00 03 91 08 00 40 00 92 00 04 96',
+      '08 00 40 00 92 00 03 91 0A 00 40 00 E4 13 00 03 81 75 ' +
+        '08 00 40 00 92 00 04 96 0A 00 40 00 E4 13 00 04 01 F2',
     ]);
   });
 
@@ -425,7 +428,8 @@ describe('emergency stop safety', () => {
     current().takeSent();
     manager.emergencyStopLocos([{address: 3, steps: 128, forward: true}]);
     expect(current().takeSent()).toEqual([
-      '08 00 40 00 92 00 03 91 09 00 40 00 E3 F0 00 03 10',
+      '08 00 40 00 92 00 03 91 0A 00 40 00 E4 13 00 03 81 75 ' +
+        '09 00 40 00 E3 F0 00 03 10',
     ]);
   });
 

@@ -219,16 +219,24 @@ export class ConnectionManager {
   }
 
   // Emergency stop for individual locos (all members of a consist at once).
+  // Sends the drive command with the E-Stop speed value, which every central
+  // unit supports. On FW 1.43+ LAN_X_SET_LOCO_E_STOP goes out as well: a unit
+  // may ignore it (the Z21Sim simulator does), so it is never sent alone.
+  // Decided by the user.
   emergencyStopLocos(targets: LocoStopTarget[]): void {
     const useLocoEStop =
       versionToNumber(this.deviceInfo.firmwareVersion ?? '') >=
       LOCO_E_STOP_MIN_FIRMWARE;
-    const datasets = targets.map((target) => {
+    const datasets = targets.flatMap((target) => {
       this.throttle.cancel(target.address);
-      // Older firmware: the e-stop speed value of the drive command.
+      const driveEStop = lanXSetLocoDrive({
+        ...target,
+        speed: 0,
+        emergencyStop: true,
+      });
       return useLocoEStop
-        ? lanXSetLocoEStop(target.address)
-        : lanXSetLocoDrive({...target, speed: 0, emergencyStop: true});
+        ? [lanXSetLocoEStop(target.address), driveEStop]
+        : [driveEStop];
     });
     // Then ask for the result in the same datagram: not every central unit
     // reports it on its own, and one that ignores the command must not leave

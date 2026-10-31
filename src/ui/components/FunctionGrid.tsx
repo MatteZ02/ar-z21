@@ -3,6 +3,7 @@ import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {
   FUNCTION_PAGES,
   pageRows,
+  SLOT_ROWS,
   slotAt,
   usedPages,
 } from '../../library/functionSlots';
@@ -10,6 +11,7 @@ import {functionIcon} from '../../library/icons';
 import {LocoFunction} from '../../library/types';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
+import {functionPagesPerView, MAX_FUNCTION_ROW_HEIGHT} from '../layout';
 import {Icon} from './Icon';
 
 type Props = {
@@ -36,14 +38,47 @@ export const FunctionGrid = ({
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   const editing = onEditSlot !== undefined;
   const pageCount = editing ? FUNCTION_PAGES : usedPages(functions);
-  const [selectedPage, setSelectedPage] = useState(0);
-  const page = Math.min(selectedPage, pageCount - 1);
+  const [height, setHeight] = useState(0);
+  const [selectedView, setSelectedView] = useState(0);
 
-  const cell = (fn: LocoFunction | null, row: number, column: number) => {
+  // Taller screens show several pages stacked; the tabs then switch between
+  // groups of pages. Without tabs there is more room, so check that first.
+  const fit = (available: number) =>
+    functionPagesPerView(available, SLOT_ROWS, spacing.sm, pageCount);
+  const gridHeight = height - 2 * spacing.sm;
+  const perViewNoTabs = fit(gridHeight);
+  const perView =
+    perViewNoTabs >= pageCount ? pageCount : fit(gridHeight - minTouchTarget);
+  const viewCount = Math.ceil(pageCount / perView);
+  const view = Math.min(selectedView, viewCount - 1);
+  const pages = Array.from(
+    {length: Math.min(perView, pageCount - view * perView)},
+    (_, offset) => view * perView + offset,
+  );
+  const viewLabel = (index: number) => {
+    const first = index * perView;
+    const last = Math.min(pageCount, first + perView) - 1;
+    return first === last
+      ? strings.drive.pages[first]
+      : strings.drive.pageRange(first, last);
+  };
+
+  const cell = (
+    fn: LocoFunction | null,
+    page: number,
+    row: number,
+    column: number,
+  ) => {
     const slot = slotAt(page, row, column);
     if (fn === null) {
       if (!editing) {
-        return <View key={column} style={styles.spacer} />;
+        // Same border width as a button, so both columns stay equally wide.
+        return (
+          <View
+            key={column}
+            style={[styles.spacer, {borderColor: colors.transparent}]}
+          />
+        );
       }
       return (
         <Pressable
@@ -142,8 +177,13 @@ export const FunctionGrid = ({
   };
 
   return (
-    <View style={styles.container}>
-      {pageCount > 1 && (
+    <View
+      style={styles.container}
+      onLayout={(event) => {
+        setHeight(event.nativeEvent.layout.height);
+      }}
+    >
+      {viewCount > 1 && (
         <View
           accessibilityRole="tablist"
           style={[
@@ -151,16 +191,16 @@ export const FunctionGrid = ({
             {gap: spacing.xs, paddingHorizontal: spacing.sm},
           ]}
         >
-          {Array.from({length: pageCount}, (_, index) => {
-            const selected = index === page;
+          {Array.from({length: viewCount}, (_, index) => {
+            const selected = index === view;
             return (
               <Pressable
                 key={index}
                 accessibilityRole="tab"
-                accessibilityLabel={strings.drive.page(index + 1)}
+                accessibilityLabel={strings.drive.page(index * perView + 1)}
                 accessibilityState={{selected}}
                 onPress={() => {
-                  setSelectedPage(index);
+                  setSelectedView(index);
                 }}
                 style={[
                   styles.tab,
@@ -180,7 +220,7 @@ export const FunctionGrid = ({
                     fontWeight: selected ? '700' : '400',
                   }}
                 >
-                  {strings.drive.pages[index]}
+                  {viewLabel(index)}
                 </Text>
               </Pressable>
             );
@@ -193,11 +233,30 @@ export const FunctionGrid = ({
           {padding: spacing.sm, gap: spacing.sm},
         ]}
       >
-        {pageRows(functions, page).map((row, rowIndex) => (
-          <View key={rowIndex} style={[styles.row, {gap: spacing.sm}]}>
-            {row.map((fn, column) => cell(fn, rowIndex, column))}
-          </View>
-        ))}
+        {pages.map((page, index) => [
+          // Stacked pages: name each page after the first, so the C I / C II
+          // layout of the Roco app stays recognisable.
+          index > 0 && (
+            <Text
+              key={`label-${page}`}
+              accessibilityRole="header"
+              style={{color: colors.textSecondary, fontSize: fontSizes.body}}
+            >
+              {strings.drive.pages[page]}
+            </Text>
+          ),
+          ...pageRows(functions, page).map((row, rowIndex) => (
+            <View
+              key={`${page}-${rowIndex}`}
+              style={[
+                styles.row,
+                {gap: spacing.sm, maxHeight: MAX_FUNCTION_ROW_HEIGHT},
+              ]}
+            >
+              {row.map((fn, column) => cell(fn, page, rowIndex, column))}
+            </View>
+          )),
+        ])}
       </ScrollView>
     </View>
   );
@@ -231,6 +290,7 @@ const styles = StyleSheet.create({
   },
   spacer: {
     flex: 1,
+    borderWidth: 2,
   },
   emptyCell: {
     borderStyle: 'dashed',

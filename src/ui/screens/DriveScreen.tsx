@@ -12,8 +12,8 @@ import {throttleCount} from '../layout';
 export const DriveScreen = () => {
   useKeepAwake();
   const {colors} = useTheme();
-  const {width} = useWindowDimensions();
-  const split = throttleCount(width) === 2;
+  const {width, height} = useWindowDimensions();
+  const split = throttleCount(width, height) === 2;
 
   return (
     <ScreenFrame title={strings.drive.title}>

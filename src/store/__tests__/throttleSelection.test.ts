@@ -1,4 +1,9 @@
-import {SPLIT_MIN_WIDTH, throttleCount} from '../../ui/layout';
+import {
+  functionPagesPerView,
+  MAX_FUNCTION_ROW_HEIGHT,
+  SPLIT_MIN_WIDTH,
+  throttleCount,
+} from '../../ui/layout';
 import {
   DEFAULT_THROTTLES,
   migrateSettings,
@@ -62,10 +67,20 @@ describe('settings migration', () => {
 });
 
 describe('layout', () => {
-  it('splits only on wide screens', () => {
-    expect(throttleCount(390)).toBe(1); // phone portrait
-    expect(throttleCount(932)).toBe(1); // largest phones in landscape
-    expect(throttleCount(SPLIT_MIN_WIDTH)).toBe(2);
-    expect(throttleCount(1180)).toBe(2); // tablet landscape
+  it('splits only on wide screens in landscape', () => {
+    expect(throttleCount(390, 844)).toBe(1); // phone portrait
+    expect(throttleCount(932, 430)).toBe(1); // largest phones in landscape
+    expect(throttleCount(SPLIT_MIN_WIDTH, 700)).toBe(2);
+    expect(throttleCount(1180, 820)).toBe(2); // tablet landscape
+    expect(throttleCount(1024, 1366)).toBe(1); // large tablet portrait
+  });
+
+  it('stacks as many function pages as fit', () => {
+    const page = 6 * MAX_FUNCTION_ROW_HEIGHT + 5 * 8;
+    expect(functionPagesPerView(400, 6, 8, 3)).toBe(1);
+    expect(functionPagesPerView(page, 6, 8, 3)).toBe(1);
+    expect(functionPagesPerView(2 * page + 8, 6, 8, 3)).toBe(2);
+    expect(functionPagesPerView(5000, 6, 8, 3)).toBe(3);
+    expect(functionPagesPerView(5000, 6, 8, 1)).toBe(1);
   });
 });

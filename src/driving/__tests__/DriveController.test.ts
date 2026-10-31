@@ -73,6 +73,25 @@ describe('DriveController', () => {
     expect(live()).toBeUndefined();
   });
 
+  it('keeps two throttles on the same loco in sync without double packets', () => {
+    // Split screen with the same loco on both sides.
+    const {connection, controller, live, emitReport} = setup();
+    const left = controller.watch(3);
+    const right = controller.watch(3);
+    expect(connection.watchLocos).toHaveBeenCalledTimes(1);
+
+    controller.setSpeed(3, 40);
+    expect(connection.drive).toHaveBeenCalledTimes(1);
+    // Both throttles read the same live state.
+    emitReport({speed: 40});
+    expect(live()?.speed).toBe(40);
+
+    left();
+    expect(live()?.speed).toBe(40);
+    right();
+    expect(live()).toBeUndefined();
+  });
+
   it('shows reports from the central unit', () => {
     const {controller, live, emitReport} = setup();
     controller.watch(3);

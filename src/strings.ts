@@ -201,6 +201,9 @@ export const strings = {
     cancel: 'Cancel',
     addressPrefix: '#',
     pages: ['C I', 'C II', 'C III'],
+    // Several pages shown together, e.g. "C I–II" (indexes from 0).
+    pageRange: (first: number, last: number) =>
+      `C ${['I', 'II', 'III'][first]}–${['I', 'II', 'III'][last]}`,
     page: (number: number) => `Function page ${number}`,
     speedUnits: {kmh: 'km/h', mph: 'mph'},
     library: 'Choose from vehicles',

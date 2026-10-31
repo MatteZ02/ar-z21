@@ -1,4 +1,4 @@
-import {useNavigation, useRouter} from 'expo-router';
+import {usePathname, useRouter} from 'expo-router';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
@@ -16,9 +16,10 @@ type Props = {
 export const AppHeader = ({title}: Props) => {
   const {colors, spacing, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
-  // This screen's own navigator knows its history from the first render;
-  // router.canGoBack() can still be false while the push completes.
-  const canGoBack = useNavigation().canGoBack();
+  // Every screen except the menu has a way back. Decided by route, because
+  // the navigator's canGoBack() is read once and can still be false while the
+  // screen is being pushed.
+  const canGoBack = usePathname() !== '/';
 
   return (
     <View
@@ -39,7 +40,11 @@ export const AppHeader = ({title}: Props) => {
             accessibilityRole="button"
             accessibilityLabel={strings.back}
             onPress={() => {
-              router.back();
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace('/');
+              }
             }}
             style={[
               styles.back,

@@ -33,4 +33,6 @@ export const palette = {
 
   teal700: '#00796B',
   teal300: '#4DD0C1',
+
+  scrim: 'rgba(0, 0, 0, 0.55)',
 } as const;

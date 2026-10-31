@@ -40,6 +40,9 @@ export type ColorTokens = {
   connectionOk: string;
   connectionConnecting: string;
   connectionError: string;
+
+  // Dims the screen behind a dialog.
+  scrim: string;
 };
 
 export const lightColors: ColorTokens = {
@@ -74,6 +77,8 @@ export const lightColors: ColorTokens = {
   connectionOk: palette.green700,
   connectionConnecting: palette.amber700,
   connectionError: palette.red700,
+
+  scrim: palette.scrim,
 };
 
 export const darkColors: ColorTokens = {
@@ -108,4 +113,6 @@ export const darkColors: ColorTokens = {
   connectionOk: palette.green300,
   connectionConnecting: palette.amber300,
   connectionError: palette.red400,
+
+  scrim: palette.scrim,
 };

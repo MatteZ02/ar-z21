@@ -11,6 +11,7 @@ import {
   applyChange,
   displayedLoco,
   emptyIntent,
+  LOCAL_CHANGE_HOLD_MS,
   LocoChange,
   LocoIntent,
   reconcileIntent,
@@ -34,6 +35,8 @@ type WatchedLoco = {
   steps: SpeedSteps;
   report: LocoInfo | null;
   intent: LocoIntent;
+  // Ends the hold of pending changes even if no report arrives.
+  intentTimer: ReturnType<typeof setTimeout> | null;
   sharedTimer: ReturnType<typeof setTimeout> | null;
   unwatch: () => void;
 };
@@ -78,6 +81,7 @@ export class DriveController {
         steps,
         report: null,
         intent: emptyIntent(),
+        intentTimer: null,
         sharedTimer: null,
         unwatch: this.connection.watchLocos([address]),
       };
@@ -164,13 +168,11 @@ export class DriveController {
   // done, so the UI can give matching feedback.
   globalStop(mode: StopMode): StopAction {
     const action = this.stopTapper.tap(mode);
+    // Loco displays are not changed here: the track status banner shows the
+    // stop, and the connection asks for the locos' state afterwards, so the
+    // screen shows what the central unit actually holds.
     if (action === 'emergencyStop') {
       this.connection.emergencyStop();
-      // Show every loco as stopped right away. If the central unit reports
-      // otherwise, its report wins after the hold time.
-      for (const [address, loco] of this.locos) {
-        this.change(address, loco, {kind: 'emergencyStop'});
-      }
     } else {
       this.connection.setTrackPower(false);
     }
@@ -195,6 +197,20 @@ export class DriveController {
 
   private change(address: number, loco: WatchedLoco, change: LocoChange) {
     loco.intent = applyChange(loco.intent, change, this.now());
+    // After the hold time the central unit's last report is shown again,
+    // whether or not a new report has arrived: a change the central unit
+    // ignored must not stay on screen.
+    if (loco.intentTimer !== null) {
+      clearTimeout(loco.intentTimer);
+    }
+    loco.intentTimer = setTimeout(() => {
+      loco.intentTimer = null;
+      loco.intent =
+        loco.report === null
+          ? emptyIntent()
+          : reconcileIntent(loco.intent, loco.report, this.now());
+      this.publish(address);
+    }, LOCAL_CHANGE_HOLD_MS);
     this.publish(address);
   }
 
@@ -254,6 +270,9 @@ export class DriveController {
     }
     if (loco.sharedTimer !== null) {
       clearTimeout(loco.sharedTimer);
+    }
+    if (loco.intentTimer !== null) {
+      clearTimeout(loco.intentTimer);
     }
     loco.unwatch();
     this.locos.delete(address);

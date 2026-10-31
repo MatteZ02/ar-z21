@@ -150,7 +150,8 @@ describe('DriveController', () => {
       'emergencyStop',
     );
     expect(connection.emergencyStop).toHaveBeenCalledTimes(1);
-    expect(live()).toMatchObject({speed: 0, emergencyStop: true});
+    // The loco display keeps following the central unit's reports.
+    expect(live()).toMatchObject({speed: 50, emergencyStop: false});
 
     clock.advance(STOP_DOUBLE_TAP_WINDOW_MS - 100);
     expect(controller.globalStop('emergencyStopThenPowerOff')).toBe('powerOff');
@@ -167,6 +168,26 @@ describe('DriveController', () => {
     clock.advance(LOCAL_CHANGE_HOLD_MS);
     emitReport({speed: 10});
     expect(live()?.speed).toBe(10);
+  });
+
+  it('drops an unconfirmed change after the hold time, even without a report', () => {
+    // E.g. a central unit that silently ignores LAN_X_SET_LOCO_E_STOP.
+    const {controller, clock, live, emitReport} = setup();
+    controller.watch(3);
+    emitReport({speed: 126});
+    controller.emergencyStopLoco(3);
+    expect(live()).toMatchObject({speed: 0, emergencyStop: true});
+    clock.advance(LOCAL_CHANGE_HOLD_MS);
+    expect(live()).toMatchObject({speed: 126, emergencyStop: false});
+  });
+
+  it('shows defaults again if a change is never confirmed and nothing was reported', () => {
+    const {controller, clock, live} = setup();
+    controller.watch(3);
+    controller.setSpeed(3, 40);
+    expect(live()?.speed).toBe(40);
+    clock.advance(LOCAL_CHANGE_HOLD_MS);
+    expect(live()).toMatchObject({known: false, speed: 0});
   });
 
   it('flags another controller and clears the flag later', () => {

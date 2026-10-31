@@ -230,7 +230,13 @@ export class ConnectionManager {
         ? lanXSetLocoEStop(target.address)
         : lanXSetLocoDrive({...target, speed: 0, emergencyStop: true});
     });
-    this.send(datasets);
+    // Then ask for the result in the same datagram: not every central unit
+    // reports it on its own, and one that ignores the command must not leave
+    // the screen showing a stop that did not happen.
+    const watched = targets
+      .map((target) => target.address)
+      .filter((address) => this.subscriptions.isWatched(address));
+    this.send([...datasets, ...this.locoInfoRequests(watched)]);
   }
 
   // Throttled; see DriveThrottle.
@@ -431,7 +437,9 @@ export class ConnectionManager {
 
   private handleMessage(message: Z21Message): void {
     const trackStatus = trackStatusFromMessage(message);
-    if (trackStatus !== undefined && trackStatus !== this.trackStatus) {
+    const trackStatusChanged =
+      trackStatus !== undefined && trackStatus !== this.trackStatus;
+    if (trackStatusChanged) {
       this.trackStatus = trackStatus;
       this.events.emit('trackStatus', trackStatus);
     }
@@ -440,6 +448,18 @@ export class ConnectionManager {
       case 'locoInfo':
         this.throttle.noteReported(message.loco);
         this.events.emit('locoInfo', message.loco);
+        break;
+      case 'stopped':
+      case 'trackPowerOn':
+      case 'trackPowerOff':
+        // The spec does not say whether the central unit reports loco state
+        // after these (the Z21Sim simulator does not, and keeps the old
+        // speeds). Ask, so the screen shows what the central unit holds.
+        // Only on a real change: a repeated broadcast (or one sent along
+        // with every reply) must never start a request loop.
+        if (trackStatusChanged) {
+          this.requestLocoInfo(this.subscriptions.watchedAddresses());
+        }
         break;
       case 'systemState':
         this.events.emit('systemState', message.systemState);
@@ -472,10 +492,14 @@ export class ConnectionManager {
   // --- Sending --------------------------------------------------------------
 
   private requestLocoInfo(addresses: number[]): void {
-    if (addresses.length === 0) {
-      return;
+    if (addresses.length > 0) {
+      this.send(this.locoInfoRequests(addresses));
     }
-    const datasets = addresses.map((address) => {
+  }
+
+  // LAN_X_GET_LOCO_INFO datasets, with the subscription FIFO kept up to date.
+  private locoInfoRequests(addresses: number[]): Uint8Array[] {
+    return addresses.map((address) => {
       const evicted = this.subscriptions.recordRequest(address);
       evicted
         .filter((dropped) => this.subscriptions.isWatched(dropped))
@@ -484,7 +508,6 @@ export class ConnectionManager {
         });
       return lanXGetLocoInfo(address);
     });
-    this.send(datasets);
   }
 
   // Sends only while connected; commands issued while offline are dropped,

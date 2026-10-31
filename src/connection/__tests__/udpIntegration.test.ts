@@ -77,12 +77,18 @@ describe('ConnectionManager over real UDP', () => {
       await waitFor(() => z21.received.includes('30:'));
 
       expect(states).toEqual(['connecting', 'connected', 'disconnected']);
-      expect(speeds).toEqual([64]);
+      expect(speeds[0]).toBe(64);
       expect(z21.received.slice(0, 2)).toEqual([
         '50:01 00 00 00',
         '40:21 24 05',
       ]);
-      expect(z21.received).toContain('40:E3 F0 00 03 10');
+      // The subscription, plus at most one re-request after the stop
+      // broadcast: the broadcast repeated in the reply must not cause more.
+      const locoRequests = z21.received.filter(
+        (dataset) => dataset === '40:E3 F0 00 03 10',
+      );
+      expect(locoRequests.length).toBeGreaterThanOrEqual(1);
+      expect(locoRequests.length).toBeLessThanOrEqual(2);
     } finally {
       manager.dispose();
       z21.close();

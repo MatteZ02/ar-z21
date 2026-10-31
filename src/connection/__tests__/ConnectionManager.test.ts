@@ -417,4 +417,55 @@ describe('emergency stop safety', () => {
       '08 00 40 00 92 00 03 91 08 00 40 00 92 00 04 96',
     ]);
   });
+
+  it('per-loco stop of a watched loco asks for its state in the same datagram', async () => {
+    const {manager, current} = await connected();
+    current().receive(HWINFO_FW_143);
+    manager.watchLocos([3]);
+    current().takeSent();
+    manager.emergencyStopLocos([{address: 3, steps: 128, forward: true}]);
+    expect(current().takeSent()).toEqual([
+      '08 00 40 00 92 00 03 91 09 00 40 00 E3 F0 00 03 10',
+    ]);
+  });
+
+  const BC_STOPPED = '07 00 40 00 81 00 81';
+  const BC_POWER_ON = '07 00 40 00 61 01 60';
+  const BC_POWER_OFF = '07 00 40 00 61 00 61';
+  const REQUEST_3_AND_200 =
+    '09 00 40 00 E3 F0 00 03 10 09 00 40 00 E3 F0 C0 C8 1B';
+
+  it.each([
+    ['emergency stop', BC_STOPPED],
+    ['track power off', BC_POWER_OFF],
+  ])(
+    'asks for the state of watched locos after %s',
+    async (_name, broadcast) => {
+      const {manager, current} = await connected();
+      manager.watchLocos([3, 200]);
+      current().takeSent();
+      current().receive(broadcast);
+      expect(current().takeSent()).toEqual([REQUEST_3_AND_200]);
+    },
+  );
+
+  it('asks for the state of watched locos when track power returns', async () => {
+    const {manager, current} = await connected();
+    manager.watchLocos([3, 200]);
+    current().receive(BC_POWER_OFF);
+    current().takeSent();
+    current().receive(BC_POWER_ON);
+    expect(current().takeSent()).toEqual([REQUEST_3_AND_200]);
+  });
+
+  it('does not ask again for a repeated broadcast', async () => {
+    const {manager, current} = await connected();
+    manager.watchLocos([3]);
+    current().receive(BC_STOPPED);
+    current().takeSent();
+    current().receive(BC_STOPPED);
+    current().receive(BC_POWER_ON);
+    current().receive(BC_POWER_ON);
+    expect(current().takeSent()).toEqual(['09 00 40 00 E3 F0 00 03 10']);
+  });
 });

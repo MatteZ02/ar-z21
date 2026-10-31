@@ -1,9 +1,4 @@
-import {
-  useLocalSearchParams,
-  useNavigation,
-  usePreventRemove,
-  useRouter,
-} from 'expo-router';
+import {useLocalSearchParams, usePreventRemove, useRouter} from 'expo-router';
 import {useEffect, useRef, useState} from 'react';
 import {
   Alert,
@@ -71,7 +66,6 @@ const STEP_OPTIONS: {value: SpeedSteps; label: string}[] = [
 export const LocoEditorScreen = () => {
   const {colors, spacing, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
-  const navigation = useNavigation();
   const {library} = useServices();
   const params = useLocalSearchParams<{id: string}>();
   const isNew = params.id === 'new';
@@ -101,8 +95,9 @@ export const LocoEditorScreen = () => {
   const [saving, setSaving] = useState(false);
   // Photos picked during this edit. Any not kept when leaving are deleted.
   const sessionPhotos = useRef<string[]>([]);
-  // Set when leaving on purpose (saved or deleted): no discard question.
-  const leaving = useRef(false);
+  // Set to leave the screen once the form is no longer dirty (after saving,
+  // deleting or discarding): the remove guard below must be off first.
+  const [leaveRequested, setLeaveRequested] = useState(false);
 
   const discardSessionPhotos = (keep: string | null) => {
     for (const name of sessionPhotos.current) {
@@ -113,13 +108,25 @@ export const LocoEditorScreen = () => {
     sessionPhotos.current = [];
   };
 
+  const leave = () => {
+    setDirty(false);
+    setLeaveRequested(true);
+  };
+
+  useEffect(() => {
+    if (leaveRequested && !dirty) {
+      setLeaveRequested(false);
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/library');
+      }
+    }
+  }, [leaveRequested, dirty, router]);
+
   // Unsaved changes are a real mistake to lose: confirm before leaving,
   // whether by Cancel, the back arrow or the system back gesture.
-  usePreventRemove(dirty, ({data}) => {
-    if (leaving.current) {
-      navigation.dispatch(data.action);
-      return;
-    }
+  usePreventRemove(dirty, () => {
     Alert.alert(strings.editor.discardTitle, strings.editor.discardMessage, [
       {text: strings.editor.keepEditing, style: 'cancel'},
       {
@@ -127,8 +134,7 @@ export const LocoEditorScreen = () => {
         style: 'destructive',
         onPress: () => {
           discardSessionPhotos(null);
-          leaving.current = true;
-          navigation.dispatch(data.action);
+          leave();
         },
       },
     ]);
@@ -171,9 +177,7 @@ export const LocoEditorScreen = () => {
         return;
       }
       discardSessionPhotos(draft.photo);
-      leaving.current = true;
-      setDirty(false);
-      router.back();
+      leave();
     } catch {
       Alert.alert(strings.editor.saveFailed);
     } finally {
@@ -199,8 +203,7 @@ export const LocoEditorScreen = () => {
               .then(() => {
                 forgetLoco(locoId);
                 discardSessionPhotos(null);
-                leaving.current = true;
-                router.back();
+                leave();
               })
               .catch(() => {
                 Alert.alert(strings.editor.saveFailed);

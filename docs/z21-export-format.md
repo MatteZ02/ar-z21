@@ -9,9 +9,17 @@ tables, columns and files.
 
 - A **zip** archive (deflate). Entries live under `export/<UUID>/`:
   - `Loco.sqlite`: an SQLite database (text encoding UTF-8);
-  - `<UUID>.png`: images (loco photos, plus small ~8 KB images that are probably generated
-    thumbnails or placeholders, to check in Phase 5).
+  - `<UUID>.png`: images, all about 500 × 200 px. 80 of 109 are vehicle photos
+    (`vehicles.image_name`); the other 29 are not referenced by any table of interest. The small
+    ~8 KB files are ordinary 500 × 200 photos too (4 are used by vehicles).
 - Nothing else (no manifest).
+
+## Importer decisions (user, 2026-10-31)
+
+- Wagons (`type` 1) are imported as locos: they have addresses and functions (control cars).
+- No speed-step mode in the export: imported locos get 128 steps.
+- Vehicles with a duplicate address exist (address 3 three times, 95 twice); the duplicate
+  handling (skip, replace, keep both) applies per vehicle.
 
 ## Tables relevant to this app
 

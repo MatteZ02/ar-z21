@@ -134,9 +134,9 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 - The loco's own STOP sends the drive command with the E-Stop speed value, plus
   LAN_X_SET_LOCO_E_STOP on FW 1.43+, in one datagram (decided by the user: Z21Sim ignores
   LAN_X_SET_LOCO_E_STOP, so it is never sent alone).
-- Open: whether Resume / Track power on should first set the on-screen locos to 0. Verified on
-  the z21 start (FW 1.33) and Z21Sim: loco speeds survive STOP and power off, so locos run again
-  on Resume. Until the user decides, the app does not change speeds on Resume.
+- Resume / Track power on leaves loco speeds unchanged (decided by the user). Verified on the
+  z21 start (FW 1.33) and Z21Sim: speeds survive STOP and power off, so locos continue where
+  they were stopped. The throttle shows that speed during the stop.
 - Displayed loco state must never claim something the central unit has not confirmed: pending
   changes expire after `LOCAL_CHANGE_HOLD_MS`, and the app re-requests loco info after track
   status changes and per-loco stops.

@@ -77,7 +77,10 @@ src/
                         action goes through.
   consist/              PURE consist math: speed per member (128-step scale, converted per
                         member, offset in its own steps), direction, safety rules. Functions
-                        are Roco style: the member strip picks whose functions are shown.
+                        are set per loco in the consist, with no mirroring or routing (decided
+                        by the user): the member strip picks whose functions are shown.
+                        Roco exports are shared from the Roco app through the iOS share sheet;
+                        the Android path is not known yet.
   store/                Zustand stores: connection, track status, live loco state, library, settings
   library/              Loco model, function slots (pages of 2x6, column by column, as the
                         Roco export), icons, validation, speed display (pure, tested);

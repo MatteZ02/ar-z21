@@ -3,7 +3,15 @@ import {create} from 'zustand';
 import {createJSONStorage, persist, StateStorage} from 'zustand/middleware';
 import {DEFAULT_STOP_MODE, StopMode} from '../driving/globalStop';
 import {withRecent} from '../library/recent';
-import {DEFAULT_SPEED_STEPS, SpeedSteps, Z21_DEFAULT_PORT} from '../protocol';
+import {SpeedSteps, Z21_DEFAULT_PORT} from '../protocol';
+import {
+  DEFAULT_THROTTLES,
+  migrateSettings,
+  ThrottleIndex,
+  ThrottleSelection,
+  withoutLoco,
+  withSelection,
+} from './throttleSelection';
 
 // Brief §6.1.
 export const DEFAULT_HOST = '192.168.0.111';
@@ -12,11 +20,8 @@ export type Settings = {
   host: string;
   port: number;
   stopMode: StopMode;
-  // The library loco on the throttle, or null to drive a plain address
-  // (locoAddress / locoSpeedSteps) that is not in the library.
-  driveLocoId: number | null;
-  locoAddress: number;
-  locoSpeedSteps: SpeedSteps;
+  // What each throttle drives (index: ThrottleIndex).
+  throttles: ThrottleSelection[];
   // Library locos driven recently, latest first (quick-switch strip).
   recentLocoIds: number[];
 };
@@ -71,9 +76,7 @@ export const useSettingsStore = create<SettingsStore>()(
       host: DEFAULT_HOST,
       port: Z21_DEFAULT_PORT,
       stopMode: DEFAULT_STOP_MODE,
-      driveLocoId: null,
-      locoAddress: 3,
-      locoSpeedSteps: DEFAULT_SPEED_STEPS,
+      throttles: DEFAULT_THROTTLES,
       recentLocoIds: [],
       update: (changes) => {
         set(changes);
@@ -81,37 +84,57 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: 'settings',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => storage),
       partialize: ({update: _update, ...settings}) => settings,
+      migrate: (persisted, version) =>
+        migrateSettings(persisted, version) as unknown as SettingsStore,
     },
   ),
 );
 
-// Puts a library loco on the throttle and remembers it as recently driven.
-export const chooseLocoToDrive = (locoId: number): void => {
+// One constant object, so the selector result stays stable between renders.
+const NO_SELECTION: ThrottleSelection = {kind: 'none'};
+
+export const useThrottleSelection = (index: ThrottleIndex): ThrottleSelection =>
+  useSettingsStore((state) => state.throttles[index] ?? NO_SELECTION);
+
+// Puts a library loco on a throttle and remembers it as recently driven.
+export const chooseLocoToDrive = (
+  index: ThrottleIndex,
+  locoId: number,
+): void => {
   const settings = useSettingsStore.getState();
   settings.update({
-    driveLocoId: locoId,
+    throttles: withSelection(settings.throttles, index, {
+      kind: 'library',
+      locoId,
+    }),
     recentLocoIds: withRecent(settings.recentLocoIds, locoId),
   });
 };
 
-// Puts a plain address (not in the library) on the throttle.
+// Puts a plain address (not in the library) on a throttle.
 export const chooseAddressToDrive = (
-  locoAddress: number,
-  locoSpeedSteps: SpeedSteps,
+  index: ThrottleIndex,
+  address: number,
+  speedSteps: SpeedSteps,
 ): void => {
-  useSettingsStore
-    .getState()
-    .update({driveLocoId: null, locoAddress, locoSpeedSteps});
+  const settings = useSettingsStore.getState();
+  settings.update({
+    throttles: withSelection(settings.throttles, index, {
+      kind: 'address',
+      address,
+      speedSteps,
+    }),
+  });
 };
 
 // Forgets a deleted loco everywhere in the settings.
 export const forgetLoco = (locoId: number): void => {
   const settings = useSettingsStore.getState();
   settings.update({
-    driveLocoId: settings.driveLocoId === locoId ? null : settings.driveLocoId,
+    throttles: withoutLoco(settings.throttles, locoId),
     recentLocoIds: settings.recentLocoIds.filter((id) => id !== locoId),
   });
 };

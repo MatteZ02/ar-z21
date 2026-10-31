@@ -208,6 +208,7 @@ export const strings = {
     switchTo: (name: string) => `Drive ${name}`,
     current: 'Now driving',
     addressOnly: (address: number) => `Address ${address}`,
+    noLoco: 'No loco on this throttle yet.',
   },
 
   settings: {

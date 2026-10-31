@@ -14,8 +14,9 @@ import {useLibraryStore} from '../../store/libraryStore';
 import {
   chooseAddressToDrive,
   chooseLocoToDrive,
-  useSettingsStore,
+  useThrottleSelection,
 } from '../../store/settingsStore';
+import {isThrottleIndex, ThrottleIndex} from '../../store/throttleSelection';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 import {useServices} from '../AppServices';
@@ -40,16 +41,22 @@ export const LibraryScreen = () => {
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   const router = useRouter();
   const {library} = useServices();
-  const {mode} = useLocalSearchParams<{mode?: string}>();
-  const picking = mode === 'pick';
+  const params = useLocalSearchParams<{mode?: string; throttle?: string}>();
+  const picking = params.mode === 'pick';
+  const throttleParam = Number(params.throttle ?? 0);
+  const throttle: ThrottleIndex = isThrottleIndex(throttleParam)
+    ? throttleParam
+    : 0;
   const locos = useLibraryStore((state) => state.locos);
   const loaded = useLibraryStore((state) => state.loaded);
   const error = useLibraryStore((state) => state.error);
   const [query, setQuery] = useState('');
   const [arranging, setArranging] = useState(false);
   const [addressPicker, setAddressPicker] = useState(false);
-  const locoAddress = useSettingsStore((state) => state.locoAddress);
-  const locoSpeedSteps = useSettingsStore((state) => state.locoSpeedSteps);
+  const selection = useThrottleSelection(throttle);
+  // The address picker starts from the throttle's plain address, if any.
+  const pickerAddress = selection.kind === 'address' ? selection.address : 3;
+  const pickerSteps = selection.kind === 'address' ? selection.speedSteps : 128;
 
   const shown = useMemo(
     () => (arranging ? locos : locos.filter((loco) => matches(loco, query))),
@@ -64,7 +71,7 @@ export const LibraryScreen = () => {
 
   const open = (loco: Loco) => {
     if (picking) {
-      chooseLocoToDrive(loco.id);
+      chooseLocoToDrive(throttle, loco.id);
       router.back();
     } else {
       router.push(`/library/${loco.id}`);
@@ -296,14 +303,14 @@ export const LibraryScreen = () => {
 
       <LocoPicker
         visible={addressPicker}
-        address={locoAddress}
-        speedSteps={locoSpeedSteps}
+        address={pickerAddress}
+        speedSteps={pickerSteps}
         onCancel={() => {
           setAddressPicker(false);
         }}
         onChoose={(address, speedSteps) => {
           setAddressPicker(false);
-          chooseAddressToDrive(address, speedSteps);
+          chooseAddressToDrive(throttle, address, speedSteps);
           router.back();
         }}
       />
@@ -319,6 +326,8 @@ const styles = StyleSheet.create({
   },
   thumbnail: {
     width: '38%',
+    // Keeps rows compact on tablets.
+    maxWidth: 240,
   },
   text: {
     flex: 1,

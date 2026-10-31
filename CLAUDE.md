@@ -23,9 +23,10 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
 | 6 | Builds and docs | |
 
-Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`) and a Roco export
-(`docs/reference/z21_layout_import.z21`) are in the repo folder but untracked; the user decides
-whether to commit them. Follow the screenshots for layout and flow, without Roco's branding,
+Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
+(`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are
+gitignored (decided by the user); never commit them. Tests that need the export skip themselves
+when it is missing. Follow the screenshots for layout and flow, without Roco's branding,
 icons or photos. Still waiting for: DR5000 docs and dummy-server notes.
 **Do not invent UI layouts or the export format.** Inspect the export before writing the importer.
 Screenshot notes from the user: the − / + beside STOP in `driving_demo_loco_phone.PNG` step the
@@ -36,11 +37,12 @@ Target central units were assumed to run the latest firmware, but the user's z21
 (hardware 0x204, serial 148565, unlocked, factory IP 192.168.0.111) runs **FW 1.33**
 (checked 2026-10-31). So the fallbacks are the live path there: no LAN_X_SET_LOCO_E_STOP (the drive
 E-Stop is used), no F29–F31. Keep every feature that needs FW > 1.33 behind a version check.
-The PC reaches the z21 through a second address, 192.168.0.50, on its Ethernet adapter.
+To reach it, the PC needs a second address in 192.168.0.x on its Ethernet adapter (e.g.
+192.168.0.50; added and removed by the user as administrator).
 
-The `chore/upgrade-expo-sdk-58` history has no common ancestor with `main`. The user allows `main`
-to be reset to it, but has not yet asked for that; do not do it unprompted. The user handles
-committing the spec PDF / brief and all pushing.
+Branches: `release` is the main branch (the old `main` was replaced by the user; Phase 5 is merged
+into it). Each phase has its own `feat/phase-N-…` branch, created from `release`. The user does
+all pushing and merging into `release`; do not commit directly to `release`.
 
 TODO before release: the app name `AR Z21` and the bundle ID / package `com.example.arz21` in
 `app.json` are **placeholders**, and the licence has not been chosen.

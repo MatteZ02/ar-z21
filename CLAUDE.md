@@ -28,6 +28,9 @@ Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`) and a Roco e
 whether to commit them. Follow the screenshots for layout and flow, without Roco's branding,
 icons or photos. Still waiting for: DR5000 docs and dummy-server notes.
 **Do not invent UI layouts or the export format.** Inspect the export before writing the importer.
+Screenshot notes from the user: the − / + beside STOP in `driving_demo_loco_phone.PNG` step the
+**address** of a loco that is not in the library (they are not speed controls, so the throttle
+has none).
 
 Target central units are assumed to run the latest firmware (not yet confirmed), so FW 1.43
 features such as LAN_X_SET_LOCO_E_STOP are the primary path. Fallbacks for older or third-party
@@ -115,6 +118,10 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 
 **Safety:**
 - The global STOP is always visible on driving screens. No confirmation on driving actions or STOP.
+  It sits in the header, horizontally centred (decided by the user).
+- Changing direction while moving sends the new direction at the current speed, without stopping
+  first: DCC decoders handle the reversal (with momentum they brake, reverse, accelerate). Decided
+  by the user; revisit only if hardware shows otherwise.
 - Global STOP behaviour (decided by the user; configurable in settings):
   - Default: **one tap = emergency stop** (LAN_X_SET_STOP, track stays powered), sent immediately
     with no delay waiting for a possible second tap.

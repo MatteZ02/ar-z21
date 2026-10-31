@@ -283,6 +283,10 @@ with two LAN clients and no track connected (`hw-test.js`, a two-socket script).
   zero), and has the S (Smartsearch) bit in DB4 set; broadcasts after a change have DataLen
   0x0E (DB0–DB7) with S clear. The decoder accepts both; the S bit is not used.
 - Several datasets in one datagram are all processed.
+- **A short circuit is reported as BC_TRACK_SHORT_CIRCUIT immediately followed by
+  BC_TRACK_POWER_OFF** (same millisecond), and LAN_X_STATUS_CHANGED then has `0x06`, i.e. short
+  circuit and power off. Taken one by one, the second broadcast would hide the short; the app
+  keeps "short circuit" until power on or a status without the short bit (`nextTrackStatus`).
 
 ## 8. Version differences
 

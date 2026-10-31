@@ -1,15 +1,17 @@
 {
   "expo": {
-    "name": "react-native-expo-template",
-    "slug": "react-native-expo-template",
+    "name": "AR Z21",
+    "slug": "ar-z21",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.arz21"
     },
     "android": {
+      "package": "com.example.arz21",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

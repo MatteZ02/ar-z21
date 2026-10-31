@@ -32,9 +32,11 @@ Screenshot notes from the user: the − / + beside STOP in `driving_demo_loco_ph
 **address** of a loco that is not in the library (they are not speed controls, so the throttle
 has none).
 
-Target central units are assumed to run the latest firmware (not yet confirmed), so FW 1.43
-features such as LAN_X_SET_LOCO_E_STOP are the primary path. Fallbacks for older or third-party
-firmware stay in place.
+Target central units were assumed to run the latest firmware, but the user's z21 start
+(hardware 0x204, serial 148565, unlocked, factory IP 192.168.0.111) runs **FW 1.33**
+(checked 2026-10-31). So the fallbacks are the live path there: no LAN_X_SET_LOCO_E_STOP (the drive
+E-Stop is used), no F29–F31. Keep every feature that needs FW > 1.33 behind a version check.
+The PC reaches the z21 through a second address, 192.168.0.50, on its Ethernet adapter.
 
 The `chore/upgrade-expo-sdk-58` history has no common ancestor with `main`. The user allows `main`
 to be reset to it, but has not yet asked for that; do not do it unprompted. The user handles

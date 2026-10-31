@@ -98,8 +98,9 @@ Current entry points:
   `useServices()` gives access.
 - `src/ui/components/ScreenFrame.tsx`: every screen's frame (header with connection indicator
   and global STOP, track status banner).
-- `src/ui/screens/DriveScreen.tsx`: one throttle, or two side by side from `SPLIT_MIN_WIDTH`
-  (`src/ui/layout.ts`, 960 dp). `src/ui/components/Throttle.tsx` is one throttle, after
+- `src/ui/screens/DriveScreen.tsx`: one throttle, or two side by side in landscape from
+  `SPLIT_MIN_WIDTH` (`src/ui/layout.ts`, 960 dp; decided by the user). Function rows are at
+  most `MAX_FUNCTION_ROW_HEIGHT`; taller areas stack several function pages. `src/ui/components/Throttle.tsx` is one throttle, after
   `driving_phone.PNG` / `driving_tablet.PNG`; what each drives is `settings.throttles[i]`
   (`src/store/throttleSelection.ts`: library loco, plain address or none).
 - `src/ui/screens/LibraryScreen.tsx` (`/library`, `?mode=pick` from the drive screen) and

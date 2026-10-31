@@ -39,7 +39,7 @@ Two bytes, **big-endian**: `Adr_MSB Adr_LSB`. Address = `(Adr_MSB & 0x3F) << 8 |
 | Message | Dir | Bytes | Reply | Spec |
 |---|---|---|---|---|
 | *Login* | – | **There is no login message.** The client is registered implicitly by its first command. | – | §2.2 note p. 11 |
-| *Keepalive* | C→Z | **There is no dedicated message.** The client must talk to the Z21 at least once a minute or it is removed from the active clients. Any command counts. Plan: LAN_X_GET_STATUS when nothing else has been sent for ~25 s. | – | §1.1 p. 8 |
+| *Keepalive* | C→Z | **There is no dedicated message.** The client must talk to the Z21 at least once a minute or it is removed from the active clients. Any command counts. Decision: LAN_X_GET_STATUS when nothing else has been sent for ~25 s. | – | §1.1 p. 8 |
 | LAN_LOGOFF | C→Z | `04 00 30 00` | none | §2.2 p. 11 |
 | LAN_SET_BROADCASTFLAGS | C→Z | `08 00 50 00 <flags u32 LE>`, e.g. basic only = `08 00 50 00 01 00 00 00` | none | §2.16 pp. 16–17 |
 | LAN_GET_BROADCASTFLAGS | C→Z | `04 00 51 00` | `08 00 51 00 <flags u32 LE>` | §2.17 p. 17 |

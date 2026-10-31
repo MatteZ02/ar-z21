@@ -26,6 +26,14 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 Still waiting for: Roco app screenshots, the Roco export file, DR5000 docs and dummy-server notes.
 **Do not invent UI layouts or the export format.** Work that depends on them waits.
 
+Target central units are assumed to run the latest firmware (not yet confirmed), so FW 1.43
+features such as LAN_X_SET_LOCO_E_STOP are the primary path. Fallbacks for older or third-party
+firmware stay in place.
+
+The `chore/upgrade-expo-sdk-58` history has no common ancestor with `main`. The user allows `main`
+to be reset to it, but has not yet asked for that; do not do it unprompted. The user handles
+committing the spec PDF / brief and all pushing.
+
 TODO before release: the app name `AR Z21` and the bundle ID / package `com.example.arz21` in
 `app.json` are **placeholders**, and the licence has not been chosen.
 
@@ -74,7 +82,8 @@ Not all folders exist yet. Create them in the phase that needs them.
   FIFO, so track the set yourself.
 - Drive commands: at most one per loco per `THROTTLE_INTERVAL_MS` (100), always the latest value,
   always the final value, nothing if unchanged. Pack several datasets into one datagram per tick.
-- No polling loops. Send a keepalive only when idle, well inside the 60 s timeout.
+- No polling loops. Keepalive = LAN_X_GET_STATUS, sent only after ~25 s with nothing else sent
+  (well inside the 60 s timeout). Decided by the user.
 - Optional requests (HWINFO, GET_CODE, SystemState, E_STOP on old FW) must time out with a fallback
   and never block the UI.
 - Displayed loco state follows LAN_X_LOCO_INFO. Optimistic UI is fine, but always reconcile.
@@ -83,6 +92,13 @@ Not all folders exist yet. Create them in the phase that needs them.
 
 **Safety:**
 - The global STOP is always visible on driving screens. No confirmation on driving actions or STOP.
+- Global STOP behaviour (decided by the user; configurable in settings):
+  - Default: **one tap = emergency stop** (LAN_X_SET_STOP, track stays powered), sent immediately
+    with no delay waiting for a possible second tap.
+  - **A second tap in quick succession additionally switches track power off**
+    (LAN_X_SET_TRACK_POWER_OFF).
+  - The double-tap window is a named constant.
+  - Restoring power is a separate, explicit control.
 - Consist offsets never move a loco at speed 0, never reverse it, and are clamped to 0…max.
   E-stop/STOP ignore offsets.
 

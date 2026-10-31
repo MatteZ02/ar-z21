@@ -249,7 +249,8 @@ the known state, so that a lost packet cannot invert a function.
     are stopped. The spec does not say whether the central unit keeps each loco's speed (so it
     runs again after LAN_X_SET_TRACK_POWER_ON), or whether it sends LAN_X_LOCO_INFO after
     BC_STOPPED. The app therefore asks for the state of the on-screen locos after every change of
-    track status (`ConnectionManager.handleMessage`). **To verify on real hardware.**
+    track status (`ConnectionManager.handleMessage`). **Verified on a z21 start (7b): speeds are
+    kept, no LOCO_INFO is sent, locos run again after power on.**
 
 ## 7a. Observed behaviour of the Z21Sim simulator (2026-10-31)
 
@@ -263,7 +264,25 @@ reports hardware type `0x204` (z21 start) and firmware 1.43. Compared with the s
 - **After LAN_X_SET_STOP the loco keeps its speed**, and no LOCO_INFO is broadcast. After
   LAN_X_SET_TRACK_POWER_ON the loco still has its old speed, i.e. it would run again.
 
-Whether a real z21 start behaves the same is not known yet.
+## 7b. Observed behaviour of a real z21 start, FW 1.33 (2026-10-31)
+
+Hardware type `0x204`, firmware 1.33, LAN_GET_CODE = 2 (unlocked), factory IP 192.168.0.111. Tested
+with two LAN clients and no track connected (`hw-test.js`, a two-socket script).
+
+- **Every drive and function change is broadcast to every client subscribed to the loco**,
+  including the sender. The busy bit stays 0 when another LAN client drives (as §4.4 says).
+- **No LOCO_INFO after LAN_X_SET_STOP, LAN_X_SET_TRACK_POWER_OFF or ...\_ON.** Only the BC
+  messages. Status after a STOP then power off is `0x03` (emergency stop and power off bits).
+- **Loco speeds are kept through STOP and power off.** After LAN_X_SET_TRACK_POWER_ON the loco
+  has its old speed again, so it moves again. Same as Z21Sim.
+- **LAN_X_SET_LOCO_E_STOP is answered with LAN_X_UNKNOWN_COMMAND** (`61 82 E3`) on 1.33. The drive
+  command with E-Stop speed value works and is broadcast.
+- Direction change at speed is accepted directly (decoder handles it).
+- LAN_X_SET_LOCO_FUNCTION for F29 (needs 1.42) is silently ignored (LOCO_INFO unchanged, no error).
+- **Two LOCO_INFO lengths:** the reply to LAN_X_GET_LOCO_INFO has DataLen 0x15 (DB0–DB14, DB8+
+  zero), and has the S (Smartsearch) bit in DB4 set; broadcasts after a change have DataLen
+  0x0E (DB0–DB7) with S clear. The decoder accepts both; the S bit is not used.
+- Several datasets in one datagram are all processed.
 
 ## 8. Version differences
 

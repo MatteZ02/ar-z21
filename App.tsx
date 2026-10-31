@@ -1,20 +1,20 @@
 import {StatusBar} from 'expo-status-bar';
-import {StyleSheet, Text} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {strings} from './src/strings';
 import {useTheme} from './src/theme';
+import {ConnectionDebugScreen} from './src/ui/debug/ConnectionDebugScreen';
 
+// Phase 1: the app only shows the developer connection test screen. Real
+// navigation and screens come in Phase 2.
 const App = () => {
-  const {colors, fontSizes} = useTheme();
+  const {colors} = useTheme();
 
   return (
     <SafeAreaProvider>
       <SafeAreaView
         style={[styles.container, {backgroundColor: colors.background}]}
       >
-        <Text style={{color: colors.textPrimary, fontSize: fontSizes.title}}>
-          {strings.appName}
-        </Text>
+        <ConnectionDebugScreen />
         <StatusBar style="auto" />
       </SafeAreaView>
     </SafeAreaProvider>
@@ -24,8 +24,6 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
 

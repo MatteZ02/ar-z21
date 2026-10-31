@@ -105,6 +105,7 @@ export class ConnectionManager {
   private host = '';
   private port = Z21_DEFAULT_PORT;
   private wantConnected = false;
+  private suspended = false;
   private state: ConnectionState = 'disconnected';
   private transport: UdpTransport | null = null;
   // Incremented whenever a socket is abandoned, so late callbacks from it are
@@ -172,10 +173,30 @@ export class ConnectionManager {
   // Logs off and closes the socket. Watched locos are remembered and
   // re-subscribed on the next connect().
   disconnect(): void {
+    this.suspended = false;
     this.wantConnected = false;
     this.clearReconnectTimer();
     this.closeSocket(true);
     this.setState('disconnected');
+  }
+
+  // App went to the background: log off and close the socket (brief §5).
+  // Does nothing if not connected or connecting.
+  suspend(): void {
+    if (!this.wantConnected) {
+      return;
+    }
+    this.disconnect();
+    this.suspended = true;
+  }
+
+  // App came back to the foreground: reconnect if suspend() disconnected us.
+  // Reconnecting restores broadcast flags, track status and subscriptions.
+  resume(): void {
+    if (this.suspended) {
+      this.suspended = false;
+      this.connect(this.host, this.port);
+    }
   }
 
   // Stops everything; the manager cannot be used afterwards.

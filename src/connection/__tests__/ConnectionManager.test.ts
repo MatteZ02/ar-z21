@@ -240,6 +240,42 @@ describe('disconnect', () => {
   });
 });
 
+describe('app lifecycle', () => {
+  it('suspend logs off and closes; resume reconnects and re-subscribes', async () => {
+    const {manager, transports} = await connected();
+    manager.watchLocos([3]);
+    transports[0].takeSent();
+
+    manager.suspend();
+    expect(transports[0].sent).toEqual([LOGOFF]);
+    expect(transports[0].closed).toBe(true);
+    expect(manager.getState()).toBe('disconnected');
+
+    manager.resume();
+    await settle();
+    expect(transports[1].takeSent()).toEqual([SET_FLAGS_AND_STATUS]);
+    transports[1].receive(STATUS_NORMAL);
+    expect(transports[1].takeSent()).toContain('09 00 40 00 E3 F0 00 03 10');
+  });
+
+  it('does not reconnect on resume after an explicit disconnect', async () => {
+    const {manager, transports} = await connected();
+    manager.suspend();
+    manager.disconnect();
+    manager.resume();
+    await settle();
+    expect(transports).toHaveLength(1);
+  });
+
+  it('does nothing when suspended while disconnected', async () => {
+    const {manager, transports} = setup();
+    manager.suspend();
+    manager.resume();
+    await settle();
+    expect(transports).toHaveLength(0);
+  });
+});
+
 describe('track status', () => {
   it('follows broadcasts', async () => {
     const {current, trackStatuses} = await connected();

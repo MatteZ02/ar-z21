@@ -2,6 +2,7 @@
   "expo": {
     "name": "AR Z21",
     "slug": "ar-z21",
+    "scheme": "arz21",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",

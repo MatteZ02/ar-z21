@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {
   Platform,
   Pressable,
@@ -10,25 +10,23 @@ import {
   View,
 } from 'react-native';
 import {
-  ConnectionManager,
   ConnectionState,
   DeviceInfo,
   ProtocolLogEntry,
   TrackStatus,
 } from '../../connection';
-import {NativeUdpTransport} from '../../connection/nativeUdpTransport';
 import {
   isValidLocoAddress,
   LocoInfo,
   maxSpeedStep,
   Z21_DEFAULT_PORT,
 } from '../../protocol';
+import {useSettingsStore} from '../../store/settingsStore';
 import {strings} from '../../strings';
 import {useTheme} from '../../theme';
-import {useConnectionLifecycle} from '../hooks/useConnectionLifecycle';
+import {useServices} from '../AppServices';
 
 const LOG_LIMIT = 200;
-const DEFAULT_HOST = '192.168.0.111';
 const MONOSPACE = Platform.select({ios: 'Menlo', default: 'monospace'});
 
 type ButtonProps = {
@@ -67,22 +65,21 @@ const DebugButton = ({label, onPress, variant = 'normal'}: ButtonProps) => {
   );
 };
 
-// Developer tool for Phase 1: connect to a central unit or the dummy server,
-// send basic commands and watch the hex protocol log.
+// Developer tool: send basic commands on the app's connection and watch the
+// hex protocol log. Reached from Settings.
 export const ConnectionDebugScreen = () => {
   const {colors, spacing, fontSizes, radii} = useTheme();
-  const manager = useMemo(
-    () =>
-      new ConnectionManager({createTransport: () => new NativeUdpTransport()}),
-    [],
-  );
-  useConnectionLifecycle(manager);
+  const {manager} = useServices();
 
-  const [host, setHost] = useState(DEFAULT_HOST);
-  const [port, setPort] = useState(String(Z21_DEFAULT_PORT));
-  const [state, setState] = useState<ConnectionState>('disconnected');
-  const [trackStatus, setTrackStatus] = useState<TrackStatus>('unknown');
-  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({});
+  const [host, setHost] = useState(useSettingsStore.getState().host);
+  const [port, setPort] = useState(String(useSettingsStore.getState().port));
+  const [state, setState] = useState<ConnectionState>(manager.getState());
+  const [trackStatus, setTrackStatus] = useState<TrackStatus>(
+    manager.getTrackStatus(),
+  );
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>(
+    manager.getDeviceInfo(),
+  );
   const [logEnabled, setLogEnabled] = useState(true);
   const [log, setLog] = useState<ProtocolLogEntry[]>([]);
 
@@ -106,12 +103,14 @@ export const ConnectionDebugScreen = () => {
       unsubscribers.forEach((unsubscribe) => {
         unsubscribe();
       });
-      manager.dispose();
     };
   }, [manager]);
 
   useEffect(() => {
     manager.setLogging(logEnabled);
+    return () => {
+      manager.setLogging(false);
+    };
   }, [manager, logEnabled]);
 
   useEffect(() => {
@@ -175,10 +174,6 @@ export const ConnectionDebugScreen = () => {
       contentContainerStyle={{padding: spacing.md, gap: spacing.sm}}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={{color: colors.textPrimary, fontSize: fontSizes.title}}>
-        {strings.debug.title}
-      </Text>
-
       <Text style={textStyle}>{strings.debug.host}</Text>
       <TextInput
         style={inputStyle}

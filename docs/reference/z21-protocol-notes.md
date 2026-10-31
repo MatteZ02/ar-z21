@@ -237,6 +237,11 @@ the known state, so that a lost packet cannot invert a function.
     sees a new client. The old one times out after about 60 s and is harmless, but every reopen
     must redo the full connect sequence.
 
+15. **Re-requesting a subscribed loco.** The spec does not say whether sending LAN_X_GET_LOCO_INFO
+    again for an already subscribed address moves it to the back of the 16-loco FIFO. The app
+    assumes it does **not**. If that is wrong, the app only re-requests a loco slightly earlier
+    than needed; it never misses updates. (`src/connection/subscriptions.ts`)
+
 ## 8. Version differences
 
 Only document version 1.13 is available. Its revision history (p. 3) shows which **firmware**

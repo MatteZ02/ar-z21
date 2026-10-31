@@ -16,7 +16,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | Phase | Content | State |
 |---|---|---|
 | 0 | Setup, theme, protocol notes | done |
-| 1 | Protocol layer + tests, UDP module, connection manager | code done; native module awaiting first device build and dummy-server test |
+| 1 | Protocol layer + tests, UDP module, connection manager | code done; Android module verified on the emulator against a fake Z21; awaiting the dummy server, real hardware and iOS |
 | 2 | Throttle, track status, STOP | |
 | 3 | Library, photos, loco switching | |
 | 4 | Split screen | |
@@ -81,8 +81,10 @@ Current entry points:
 - `src/ui/debug/ConnectionDebugScreen.tsx`: the developer test screen that `App.tsx` shows in
   Phase 1.
 
-This machine (the user's Windows PC) may not have the Android SDK installed. Native code can
-then only be verified by the user's own build.
+This machine (the user's Windows PC) has Android Studio on `D:`, but `ANDROID_HOME`/`JAVA_HOME`
+may not be set in Claude's shell; set them per command (`%LOCALAPPDATA%\Android\Sdk`,
+`D:\Program Files\Android\Android Studio\jbr`). The SDK's ninja was replaced with 1.12.1 for long
+paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64).
 
 ## Rules that matter
 

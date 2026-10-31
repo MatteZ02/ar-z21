@@ -1,6 +1,7 @@
+import {isValidOffset} from '../consist/consistMath';
 import {isValidLocoAddress} from '../protocol';
 import {MAX_FUNCTION_NUMBER, MAX_SLOTS} from './functionSlots';
-import {LocoDraft} from './types';
+import {ConsistDraft, LocoDraft} from './types';
 
 export const MAX_SPEED_KMH = 500;
 
@@ -46,6 +47,28 @@ export const validateDraft = (draft: LocoDraft): DraftProblem[] => {
   }
   if (new Set(slots).size !== slots.length) {
     problems.push('functionSlotDuplicate');
+  }
+  return problems;
+};
+
+export type ConsistProblem =
+  'nameMissing' | 'membersMissing' | 'memberDuplicate' | 'offsetInvalid';
+
+// Problems that prevent saving a consist.
+export const validateConsistDraft = (draft: ConsistDraft): ConsistProblem[] => {
+  const problems: ConsistProblem[] = [];
+  if (draft.name.trim() === '') {
+    problems.push('nameMissing');
+  }
+  if (draft.members.length === 0) {
+    problems.push('membersMissing');
+  }
+  const ids = draft.members.map((member) => member.locoId);
+  if (new Set(ids).size !== ids.length) {
+    problems.push('memberDuplicate');
+  }
+  if (draft.members.some((member) => !isValidOffset(member.speedOffset))) {
+    problems.push('offsetInvalid');
   }
   return problems;
 };

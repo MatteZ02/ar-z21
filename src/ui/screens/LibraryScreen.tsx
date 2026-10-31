@@ -136,7 +136,7 @@ export const LibraryScreen = () => {
                 accessibilityState={{disabled}}
                 disabled={disabled}
                 onPress={() => {
-                  run(library.move(item.id, direction));
+                  run(library.move({kind: 'loco', id: item.id}, direction));
                 }}
                 style={[
                   styles.moveButton,

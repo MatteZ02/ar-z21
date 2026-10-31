@@ -4,6 +4,7 @@ import {SqlDatabase} from '../database';
 import {LocoRepository} from '../locoRepository';
 import {migrate, SCHEMA_VERSION} from '../migrations';
 import {openTestDatabase} from '../testUtils/nodeSqlite';
+import {reorderVehicles} from '../vehicleOrder';
 
 const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
   name: 'SBB Vectron',
@@ -78,13 +79,17 @@ describe('LocoRepository', () => {
   });
 
   it('appends new locos and lists them in order', async () => {
-    const {repo} = await setup();
+    const {db, repo} = await setup();
     const a = await repo.save(draft({name: 'A', address: 1}));
     const b = await repo.save(draft({name: 'B', address: 2}));
     const c = await repo.save(draft({name: 'C', address: 3}));
     expect((await repo.list()).map((loco) => loco.id)).toEqual([a, b, c]);
 
-    await repo.reorder([c, a, b]);
+    await reorderVehicles(db, [
+      {kind: 'loco', id: c},
+      {kind: 'loco', id: a},
+      {kind: 'loco', id: b},
+    ]);
     expect((await repo.list()).map((loco) => loco.name)).toEqual([
       'C',
       'A',

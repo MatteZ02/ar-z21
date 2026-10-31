@@ -43,6 +43,32 @@ export type Loco = {
 // A loco being created or edited: no id yet for a new one.
 export type LocoDraft = Omit<Loco, 'id'> & {id?: number};
 
+// A library loco in a consist (brief §6.7).
+export type ConsistMember = {
+  locoId: number;
+  // Coupled facing backwards: drives in the opposite direction.
+  reversed: boolean;
+  // Speed difference in the loco's own speed steps; see consistMath.ts.
+  speedOffset: number;
+};
+
+// Several locos driven as one train. Members are in train order; the first
+// is the lead loco.
+export type Consist = {
+  id: number;
+  name: string;
+  photo: string | null;
+  members: ConsistMember[];
+};
+
+export type ConsistDraft = Omit<Consist, 'id'> & {id?: number};
+
+// One entry of the vehicle list or a throttle's recent strip.
+export type VehicleRef = {kind: 'loco' | 'consist'; id: number};
+
+export const sameVehicle = (a: VehicleRef, b: VehicleRef): boolean =>
+  a.kind === b.kind && a.id === b.id;
+
 export const emptyDetails = (): LocoDetails => ({
   fullName: '',
   railway: '',

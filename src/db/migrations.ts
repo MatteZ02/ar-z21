@@ -32,6 +32,23 @@ export const MIGRATIONS: string[] = [
     PRIMARY KEY (loco_id, number)
   );
   `,
+  // 2: consists (Phase 5). Positions are shared with locos: one list.
+  `
+  CREATE TABLE consists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    photo TEXT,
+    position INTEGER NOT NULL
+  );
+  CREATE TABLE consist_members (
+    consist_id INTEGER NOT NULL REFERENCES consists(id) ON DELETE CASCADE,
+    loco_id INTEGER NOT NULL REFERENCES locos(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    reversed INTEGER NOT NULL DEFAULT 0,
+    speed_offset INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (consist_id, loco_id)
+  );
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

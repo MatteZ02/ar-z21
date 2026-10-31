@@ -1,9 +1,8 @@
-import {LocoRepository} from '../../db/locoRepository';
 import {migrate} from '../../db/migrations';
 import {openTestDatabase} from '../../db/testUtils/nodeSqlite';
 import {useLibraryStore} from '../../store/libraryStore';
 import {defaultFunctions} from '../functionSlots';
-import {LibraryService, PhotoStore} from '../LibraryService';
+import {libraryDatabase, LibraryService, PhotoStore} from '../LibraryService';
 import {emptyDetails, LocoDraft} from '../types';
 
 const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
@@ -31,7 +30,7 @@ const setup = async () => {
     },
   };
   const service = new LibraryService(
-    Promise.resolve(new LocoRepository(db)),
+    Promise.resolve(libraryDatabase(db)),
     photos,
   );
   await service.load();
@@ -41,7 +40,13 @@ const setup = async () => {
 
 describe('LibraryService', () => {
   beforeEach(() => {
-    useLibraryStore.setState({loaded: false, error: null, locos: []});
+    useLibraryStore.setState({
+      loaded: false,
+      error: null,
+      locos: [],
+      consists: [],
+      order: [],
+    });
   });
 
   it('loads into the store', async () => {
@@ -98,6 +103,88 @@ describe('LibraryService', () => {
     expect(removed).toEqual(['a.jpg']);
   });
 
+  describe('consists', () => {
+    const consists = () => useLibraryStore.getState().consists;
+
+    it('validates and saves a consist after the locos in the list', async () => {
+      const {service, locos} = await setup();
+      await service.save(draft({name: 'A', address: 1}));
+      await service.save(draft({name: 'B', address: 2}));
+      const [a, b] = locos();
+      expect(
+        await service.saveConsist({name: '', photo: null, members: []}),
+      ).toEqual({ok: false, problems: ['nameMissing', 'membersMissing']});
+      expect(
+        await service.saveConsist({
+          name: 'Pair',
+          photo: null,
+          members: [
+            {locoId: a.id, reversed: false, speedOffset: 31},
+            {locoId: a.id, reversed: false, speedOffset: 0},
+          ],
+        }),
+      ).toEqual({ok: false, problems: ['memberDuplicate', 'offsetInvalid']});
+
+      const result = await service.saveConsist({
+        name: 'Pair',
+        photo: null,
+        members: [
+          {locoId: a.id, reversed: false, speedOffset: 0},
+          {locoId: b.id, reversed: true, speedOffset: -2},
+        ],
+      });
+      expect(result.ok).toBe(true);
+      expect(useLibraryStore.getState().order.map((ref) => ref.kind)).toEqual([
+        'loco',
+        'loco',
+        'consist',
+      ]);
+    });
+
+    it('converts a member’s speed difference when its speed steps change', async () => {
+      const {service, locos} = await setup();
+      await service.save(draft({speedSteps: 28}));
+      const loco = locos()[0];
+      await service.saveConsist({
+        name: 'One',
+        photo: null,
+        members: [{locoId: loco.id, reversed: false, speedOffset: 4}],
+      });
+      await service.save({...loco, speedSteps: 128});
+      expect(consists()[0].members[0].speedOffset).toBe(18);
+    });
+
+    it('drops a deleted loco from consists, and deletes consist photos', async () => {
+      const {service, removed, locos} = await setup();
+      await service.save(draft({name: 'A', address: 1}));
+      const a = locos()[0];
+      await service.saveConsist({
+        name: 'One',
+        photo: 'c.jpg',
+        members: [{locoId: a.id, reversed: false, speedOffset: 0}],
+      });
+      await service.remove(a.id);
+      expect(consists()[0].members).toEqual([]);
+      await service.removeConsist(consists()[0].id);
+      expect(consists()).toEqual([]);
+      expect(removed).toEqual(['c.jpg']);
+    });
+
+    it('sorts consists by their lead loco’s address', async () => {
+      const {service, locos} = await setup();
+      await service.save(draft({name: 'X', address: 50}));
+      await service.save(draft({name: 'Y', address: 5}));
+      await service.saveConsist({
+        name: 'Z',
+        photo: null,
+        members: [{locoId: locos()[1].id, reversed: false, speedOffset: 0}],
+      });
+      await service.sortBy('address');
+      const {order} = useLibraryStore.getState();
+      expect(order.map((ref) => ref.kind)).toEqual(['loco', 'consist', 'loco']);
+    });
+  });
+
   it('moves locos up and down, and sorts', async () => {
     const {service, locos} = await setup();
     await service.save(draft({name: 'b', address: 30}));
@@ -105,9 +192,9 @@ describe('LibraryService', () => {
     await service.save(draft({name: 'a', address: 20}));
     const names = () => locos().map((loco) => loco.name);
 
-    await service.move(locos()[2].id, -1);
+    await service.move({kind: 'loco', id: locos()[2].id}, -1);
     expect(names()).toEqual(['b', 'a', 'C']);
-    await service.move(locos()[0].id, -1);
+    await service.move({kind: 'loco', id: locos()[0].id}, -1);
     expect(names()).toEqual(['b', 'a', 'C']);
 
     await service.sortBy('name');

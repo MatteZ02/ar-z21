@@ -1,10 +1,9 @@
 import {createContext, ReactNode, useContext, useEffect, useState} from 'react';
 import {ConnectionManager} from '../connection';
 import {NativeUdpTransport} from '../connection/nativeUdpTransport';
-import {LocoRepository} from '../db/locoRepository';
 import {openLibraryDatabase} from '../db/openLibraryDatabase';
 import {DriveController} from '../driving/DriveController';
-import {LibraryService} from '../library/LibraryService';
+import {libraryDatabase, LibraryService} from '../library/LibraryService';
 import {filePhotoStore} from '../library/photos';
 import {
   bindConnectionStore,
@@ -26,11 +25,11 @@ const createServices = (): AppServices => {
   const manager = new ConnectionManager({
     createTransport: () => new NativeUdpTransport(),
   });
-  const repository = openLibraryDatabase().then((db) => new LocoRepository(db));
+  const database = openLibraryDatabase().then(libraryDatabase);
   return {
     manager,
     controller: new DriveController(manager),
-    library: new LibraryService(repository, filePhotoStore),
+    library: new LibraryService(database, filePhotoStore),
   };
 };
 

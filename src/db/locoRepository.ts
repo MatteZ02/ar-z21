@@ -1,6 +1,7 @@
 import {SpeedSteps} from '../protocol';
 import {Loco, LocoDraft, LocoFunction, SpeedDisplay} from '../library/types';
 import {SqlDatabase} from './database';
+import {nextPosition} from './vehicleOrder';
 
 type LocoRow = {
   id: number;
@@ -117,16 +118,14 @@ export class LocoRepository {
         draft.details.buildYear,
       ];
       if (id === undefined) {
-        const last = await this.db.getFirstAsync<{position: number | null}>(
-          'SELECT MAX(position) AS position FROM locos',
-        );
+        const position = await nextPosition(this.db);
         const result = await this.db.runAsync(
           `INSERT INTO locos (name, address, speed_steps, max_speed,
              speed_display, photo, notes, full_name, railway, article_number,
              decoder_type, build_year, position)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           ...values,
-          (last?.position ?? -1) + 1,
+          position,
         );
         id = result.lastInsertRowId;
       } else {
@@ -164,21 +163,8 @@ export class LocoRepository {
     return id;
   }
 
-  // Deletes the loco and its functions.
+  // Deletes the loco, its functions and its consist memberships.
   async remove(id: number): Promise<void> {
     await this.db.runAsync('DELETE FROM locos WHERE id = ?', id);
-  }
-
-  // Stores a new library order: ids in the order they should be listed.
-  async reorder(ids: number[]): Promise<void> {
-    await this.db.withTransactionAsync(async () => {
-      for (const [position, id] of ids.entries()) {
-        await this.db.runAsync(
-          'UPDATE locos SET position = ? WHERE id = ?',
-          position,
-          id,
-        );
-      }
-    });
   }
 }

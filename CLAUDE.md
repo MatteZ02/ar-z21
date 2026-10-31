@@ -16,8 +16,8 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | Phase | Content | State |
 |---|---|---|
 | 0 | Setup, theme, protocol notes | done |
-| 1 | Protocol layer + tests, UDP module, connection manager | code done; Android module verified on the emulator against a fake Z21; awaiting the dummy server, real hardware and iOS |
-| 2 | Throttle, track status, STOP | code done, verified on the emulator against a fake Z21; awaiting user review |
+| 1 | Protocol layer + tests, UDP module, connection manager | done on Android (emulator vs Z21Sim and a z21 start FW 1.33); iOS untested |
+| 2 | Throttle, track status, STOP | done on Android (emulator vs Z21Sim and a z21 start FW 1.33, including a real short circuit); iOS untested |
 | 3 | Library, photos, loco switching | |
 | 4 | Split screen | |
 | 5 | Consists, Roco export import | |

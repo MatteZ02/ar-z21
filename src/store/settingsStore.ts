@@ -11,9 +11,13 @@ export type Settings = {
   host: string;
   port: number;
   stopMode: StopMode;
-  // The loco on the throttle, until the library exists (Phase 3).
+  // The library loco on the throttle, or null to drive a plain address
+  // (locoAddress / locoSpeedSteps) that is not in the library.
+  driveLocoId: number | null;
   locoAddress: number;
   locoSpeedSteps: SpeedSteps;
+  // Library locos driven recently, latest first (quick-switch strip).
+  recentLocoIds: number[];
 };
 
 type SettingsStore = Settings & {
@@ -66,8 +70,10 @@ export const useSettingsStore = create<SettingsStore>()(
       host: DEFAULT_HOST,
       port: Z21_DEFAULT_PORT,
       stopMode: DEFAULT_STOP_MODE,
+      driveLocoId: null,
       locoAddress: 3,
       locoSpeedSteps: DEFAULT_SPEED_STEPS,
+      recentLocoIds: [],
       update: (changes) => {
         set(changes);
       },

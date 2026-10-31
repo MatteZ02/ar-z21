@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Used to choose photos of your locomotives for the library.",
+          "cameraPermission": "Used to take photos of your locomotives for the library.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

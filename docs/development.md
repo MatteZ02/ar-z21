@@ -10,11 +10,29 @@
    suitable JDK. Then set these, for example in *System → Environment Variables*:
    - `ANDROID_HOME` = `%LOCALAPPDATA%\Android\Sdk`
    - add `%ANDROID_HOME%\platform-tools` to `PATH` (for `adb`)
-   - `JAVA_HOME` = the JDK bundled with Android Studio (`C:\Program Files\Android\Android Studio\jbr`)
+   - `JAVA_HOME` = the JDK bundled with Android Studio: the `jbr` folder inside the Android Studio
+     install folder (by default `C:\Program Files\Android\Android Studio\jbr`)
 
-   A separately installed newer JDK (e.g. Java 23) may not work with the Android Gradle plugin.
+   A separately installed JDK (e.g. Java 23) may not work with the Android Gradle plugin.
    Use the bundled one.
-3. Check the setup with `npx expo-doctor`.
+3. **Long paths.** The native C++ build creates paths over 260 characters, and fails with
+   `ninja: error: Stat(…): Filename longer than 260 characters`. Fix it once per machine:
+   1. Enable Windows long paths (PowerShell as administrator), then reboot:
+
+      ```powershell
+      Set-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' LongPathsEnabled 1
+      ```
+
+   2. The `ninja.exe` bundled with the SDK's CMake 3.22.1 (ninja 1.10) ignores that setting.
+      Download `ninja-win.zip` from the
+      [ninja 1.12.1 release](https://github.com/ninja-build/ninja/releases/tag/v1.12.1), and replace
+      `%ANDROID_HOME%\cmake\3.22.1\bin\ninja.exe` with the `ninja.exe` from the zip. Keep the old
+      file as a backup.
+   3. Delete `android\app\.cxx` and `android\app\build` before building again.
+
+   Mapping the project to a short drive letter with `subst` does not help: the paths are still too
+   long, and Expo autolinking cannot find `package.json` at the root of a drive.
+4. Check the setup with `npx expo-doctor`.
 
 ## Running a development build
 
@@ -24,6 +42,10 @@ development client once, and again whenever native code or native dependencies c
 ```sh
 npx expo run:android          # builds, installs and starts on the emulator or a USB device
 ```
+
+The first build takes around 10 minutes. To build only for the emulator's CPU type, which is
+faster, add `-PreactNativeArchitectures=x86_64` when running Gradle directly
+(`cd android; .\gradlew.bat app:assembleDebug -PreactNativeArchitectures=x86_64`).
 
 After that, day-to-day JS changes only need the dev server:
 

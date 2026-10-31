@@ -8,7 +8,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.arz21"
+      "bundleIdentifier": "com.example.arz21",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Used to connect to your layout's Z21 central unit on the local Wi-Fi network."
+      }
     },
     "android": {
       "package": "com.example.arz21",

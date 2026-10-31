@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["Z21UdpModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.z21udp.Z21UdpModule"]
+  }
+}

@@ -19,8 +19,8 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 1 | Protocol layer + tests, UDP module, connection manager | done on Android (emulator vs Z21Sim and a z21 start FW 1.33); iOS untested |
 | 2 | Throttle, track status, STOP | done on Android (emulator vs Z21Sim and a z21 start FW 1.33, including a real short circuit); iOS untested |
 | 3 | Library, photos, loco switching | done, tested on the emulator against the z21 start |
-| 4 | Split screen | code done, tested on the emulator (tablet via `wm density 240`) against the z21 start; awaiting user review |
-| 5 | Consists, Roco export import | |
+| 4 | Split screen | done, tested on the emulator (tablet via `wm density 240`) against the z21 start |
+| 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
 | 6 | Builds and docs | |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`) and a Roco export
@@ -73,14 +73,18 @@ src/
   driving/              Global STOP taps, pending-change reconciliation, shared-control
                         detection (pure, tested) and DriveController, which every throttle
                         action goes through.
-  consist/              PURE consist math: offsets, direction, function routing
+  consist/              PURE consist math: speed per member (128-step scale, converted per
+                        member, offset in its own steps), direction, safety rules. Functions
+                        are Roco style: the member strip picks whose functions are shown.
   store/                Zustand stores: connection, track status, live loco state, library, settings
   library/              Loco model, function slots (pages of 2x6, column by column, as the
                         Roco export), icons, validation, speed display (pure, tested);
                         LibraryService (save/duplicate/delete/order); photos.ts (native)
   db/                   expo-sqlite schema, migrations (PRAGMA user_version), repositories.
                         Tests run the real SQL on node:sqlite (db/testUtils/nodeSqlite.ts).
-  import/               Roco Z21 export importer (pure logic, separate from UI)
+  import/               Roco Z21 export importer: rocoExport.ts reads the database (pure,
+                        tested against the user's export when present), importPlan.ts and
+                        applyImport.ts, openRocoExport.ts (native: picker, fflate, photos)
   ui/screens, ui/components
   theme/                palette.ts, colors.ts (semantic light/dark), tokens.ts, useTheme()
   strings.ts            ALL user-visible text (English only)
@@ -105,7 +109,8 @@ Current entry points:
   (`src/store/throttleSelection.ts`: library loco, plain address or none).
 - `src/ui/screens/LibraryScreen.tsx` (`/library`, `?mode=pick` from the drive screen) and
   `LocoEditorScreen.tsx` (`/library/[id]`, `new` for a new loco).
-- Roco export format: `docs/z21-export-format.md`.
+- Roco export format and importer decisions: `docs/z21-export-format.md`.
+- `src/ui/screens/ConsistEditorScreen.tsx` (`/consist/[id]`) and `ImportScreen.tsx` (`/import`).
 - `src/ui/debug/ConnectionDebugScreen.tsx`: developer test screen (Settings → For developers).
 
 This machine (the user's Windows PC) has Android Studio on `D:`, but `ANDROID_HOME`/`JAVA_HOME`

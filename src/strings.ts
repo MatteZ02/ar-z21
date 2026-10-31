@@ -91,7 +91,7 @@ export const strings = {
     title: 'Import from Roco Z21 app',
     menuEntry: 'Import from Roco app',
     intro:
-      'In the Roco Z21 app, export your layout (Settings → Layouts → Export) and save the .z21 file on this device. Then choose it here.',
+      'In the Roco Z21 app, export your layout and save the .z21 file on this device. Then choose it here.',
     choose: 'Choose export file',
     reading: 'Reading the file…',
     invalid:

@@ -2,6 +2,7 @@ import type {SQLiteStorage} from 'expo-sqlite/kv-store';
 import {create} from 'zustand';
 import {createJSONStorage, persist, StateStorage} from 'zustand/middleware';
 import {DEFAULT_STOP_MODE, StopMode} from '../driving/globalStop';
+import {withRecent} from '../library/recent';
 import {DEFAULT_SPEED_STEPS, SpeedSteps, Z21_DEFAULT_PORT} from '../protocol';
 
 // Brief §6.1.
@@ -86,3 +87,31 @@ export const useSettingsStore = create<SettingsStore>()(
     },
   ),
 );
+
+// Puts a library loco on the throttle and remembers it as recently driven.
+export const chooseLocoToDrive = (locoId: number): void => {
+  const settings = useSettingsStore.getState();
+  settings.update({
+    driveLocoId: locoId,
+    recentLocoIds: withRecent(settings.recentLocoIds, locoId),
+  });
+};
+
+// Puts a plain address (not in the library) on the throttle.
+export const chooseAddressToDrive = (
+  locoAddress: number,
+  locoSpeedSteps: SpeedSteps,
+): void => {
+  useSettingsStore
+    .getState()
+    .update({driveLocoId: null, locoAddress, locoSpeedSteps});
+};
+
+// Forgets a deleted loco everywhere in the settings.
+export const forgetLoco = (locoId: number): void => {
+  const settings = useSettingsStore.getState();
+  settings.update({
+    driveLocoId: settings.driveLocoId === locoId ? null : settings.driveLocoId,
+    recentLocoIds: settings.recentLocoIds.filter((id) => id !== locoId),
+  });
+};

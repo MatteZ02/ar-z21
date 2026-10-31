@@ -17,14 +17,17 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 |---|---|---|
 | 0 | Setup, theme, protocol notes | done |
 | 1 | Protocol layer + tests, UDP module, connection manager | code done; Android module verified on the emulator against a fake Z21; awaiting the dummy server, real hardware and iOS |
-| 2 | Throttle, track status, STOP | |
+| 2 | Throttle, track status, STOP | code done, verified on the emulator against a fake Z21; awaiting user review |
 | 3 | Library, photos, loco switching | |
 | 4 | Split screen | |
 | 5 | Consists, Roco export import | |
 | 6 | Builds and docs | |
 
-Still waiting for: Roco app screenshots, the Roco export file, DR5000 docs and dummy-server notes.
-**Do not invent UI layouts or the export format.** Work that depends on them waits.
+Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`) and a Roco export
+(`docs/reference/z21_layout_import.z21`) are in the repo folder but untracked; the user decides
+whether to commit them. Follow the screenshots for layout and flow, without Roco's branding,
+icons or photos. Still waiting for: DR5000 docs and dummy-server notes.
+**Do not invent UI layouts or the export format.** Inspect the export before writing the importer.
 
 Target central units are assumed to run the latest firmware (not yet confirmed), so FW 1.43
 features such as LAN_X_SET_LOCO_E_STOP are the primary path. Fallbacks for older or third-party
@@ -54,14 +57,17 @@ For the Android emulator, the host PC (dummy Z21 server) is `10.0.2.2`.
 ## Architecture (keep the layers separate)
 
 ```
-index.ts                entry (registerRootComponent)
-app/                    Expo Router routes: thin, they render screens from src/ui
+app/                    Expo Router routes (entry: expo-router/entry): thin, they render
+                        screens from src/ui. _layout.tsx mounts AppServicesProvider.
 modules/z21-udp/        local Expo Module: UDP socket (Kotlin DatagramSocket / Swift NWConnection)
 src/
   protocol/             PURE TypeScript. No React / React Native imports. Encode/decode datasets.
   connection/           ConnectionManager: one socket, connect/keepalive/reconnect/logoff,
                         subscription set (max 16), 100 ms throttle, typed events.
                         Depends on a UdpTransport interface, so tests use a fake.
+  driving/              Global STOP taps, pending-change reconciliation, shared-control
+                        detection (pure, tested) and DriveController, which every throttle
+                        action goes through.
   consist/              PURE consist math: offsets, direction, function routing
   store/                Zustand stores: connection, track status, live loco state, library, settings
   db/                   expo-sqlite schema, migrations (PRAGMA user_version), repositories
@@ -78,8 +84,12 @@ Current entry points:
 - `src/connection/nativeUdpTransport.ts`: the only file importing the native module. Keep it
   out of `src/connection/index.ts` so the rest stays testable.
 - `src/connection/testUtils/`: the fake transport and the Node `dgram` transport for tests.
-- `src/ui/debug/ConnectionDebugScreen.tsx`: the developer test screen that `App.tsx` shows in
-  Phase 1.
+- `src/ui/AppServices.tsx`: creates the one ConnectionManager and DriveController, binds the
+  stores, connects at start-up, handles background/foreground. `useServices()` gives access.
+- `src/ui/components/ScreenFrame.tsx`: every screen's frame (header with connection indicator
+  and global STOP, track status banner).
+- `src/ui/screens/DriveScreen.tsx`: the single throttle, laid out after `driving_phone.PNG`.
+- `src/ui/debug/ConnectionDebugScreen.tsx`: developer test screen (Settings → For developers).
 
 This machine (the user's Windows PC) has Android Studio on `D:`, but `ANDROID_HOME`/`JAVA_HOME`
 may not be set in Claude's shell; set them per command (`%LOCALAPPDATA%\Android\Sdk`,

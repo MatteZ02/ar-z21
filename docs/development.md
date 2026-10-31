@@ -74,17 +74,17 @@ tests, it only needs local access.
 
 ## Testing against the dummy Z21 server
 
-In Phase 1 the app opens a developer **Connection test** screen. It has:
+The app connects at start-up to the address saved in **Settings** (default `192.168.0.111:21105`).
+To change it, open Settings, enter the address and tap **Connect**. The address is remembered.
 
-- connect and disconnect;
-- track power on/off and STOP;
-- driving one loco and switching F0;
-- a hex **protocol log**, also printed to the Metro console in dev builds.
+For protocol details, **Settings → For developers → Connection test and protocol log** shows a
+hex **protocol log** of the app's connection (also printed to the Metro console in dev builds),
+with buttons for track power, STOP and driving one loco.
 
 ### Android emulator
 
 The emulator reaches the host PC at **`10.0.2.2`**. Run the dummy server on the PC, enter
-`10.0.2.2` and port `21105` in the app, and connect.
+`10.0.2.2` and port `21105` in Settings, and connect.
 
 ### Physical phone on the same Wi-Fi
 

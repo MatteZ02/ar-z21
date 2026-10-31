@@ -24,7 +24,7 @@ export const AppButton = ({
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   const background = {
     primary: colors.accent,
-    outline: 'transparent',
+    outline: colors.transparent,
     danger: colors.stopButton,
   }[variant];
   const foreground = {

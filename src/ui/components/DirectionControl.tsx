@@ -44,7 +44,7 @@ export const DirectionControl = ({
             minHeight: minTouchTarget,
             borderRadius: radii.md,
             // Filled when selected, outlined otherwise: not colour alone.
-            backgroundColor: selected ? colors.accent : 'transparent',
+            backgroundColor: selected ? colors.accent : colors.transparent,
             borderColor: selected ? colors.accent : colors.border,
             opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
           },

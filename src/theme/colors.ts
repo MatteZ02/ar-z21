@@ -43,6 +43,8 @@ export type ColorTokens = {
 
   // Dims the screen behind a dialog.
   scrim: string;
+  // No colour, e.g. the border of an unselected tab.
+  transparent: string;
 };
 
 export const lightColors: ColorTokens = {
@@ -79,6 +81,7 @@ export const lightColors: ColorTokens = {
   connectionError: palette.red700,
 
   scrim: palette.scrim,
+  transparent: palette.transparent,
 };
 
 export const darkColors: ColorTokens = {
@@ -115,4 +118,5 @@ export const darkColors: ColorTokens = {
   connectionError: palette.red400,
 
   scrim: palette.scrim,
+  transparent: palette.transparent,
 };

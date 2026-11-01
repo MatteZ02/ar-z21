@@ -43,6 +43,7 @@ modules/*/android/build/
 modules/*/android/.cxx/
 
 # docs/references
+docs/reference/*.zip
 docs/reference/*.png
 docs/reference/*.pdf
 docs/reference/*.z21

@@ -147,7 +147,10 @@ In PowerShell, using the Java that comes with Android Studio:
 ```
 
 (Create the `keys` folder first. Use your Android Studio folder if it is not on `D:`.)
-keytool asks for a password and a name; any name is fine, e.g. "Alppirautatieharrastajat ry". Use the same
+keytool asks for a password and a name. The name is stored in the certificate and appears in
+every APK for as long as this key is used, so enter only what may be public: your own name, or
+a neutral one such as "Throttle". Do not enter an organisation's name unless it has agreed to
+publish the app. The other questions (organisation, city, …) can be left empty. Use the same
 password for the key when asked.
 
 **Back it up now**, before the first release, in at least two places that are not this PC, for

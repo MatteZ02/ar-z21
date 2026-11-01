@@ -44,8 +44,21 @@ Branches: `release` is the main branch (the old `main` was replaced by the user;
 into it). Each phase has its own `feat/phase-N-…` branch, created from `release`. The user does
 all pushing and merging into `release`; do not commit directly to `release`.
 
-TODO before release: the app name `AR Z21` and the bundle ID / package `com.example.arz21` in
-`app.json` are **placeholders**, and the licence has not been chosen.
+Phase 6 decisions (user, 2026-11-01):
+- App name **Throttle**; bundle ID / package **`fi.alppirautatiet.throttle`** (replace the
+  placeholders `AR Z21` / `com.example.arz21` in `app.json`). Licence **MIT**.
+- Icons: the user's set (Claude Design) in `docs/reference/files.zip` (icon.png, Android
+  adaptive layers, favicon, logo.svg); copy into `assets/`.
+- Versions 0.x while in development. Android: signed APK, built and uploaded to GitHub Releases
+  **by hand**; the user creates and backs up the keystore (give the command and backup advice).
+- iOS: Apple Developer and Expo accounts do not exist yet (recommended: Apple as the association
+  if it is a registered ry, Expo personal account + organisation). The user tests on their own
+  iPhone before any App Store step.
+- Member instructions: the user writes them with Claude; provide a factual fact sheet (Android
+  APK install/update, iOS TestFlight/App Store, permissions, IP, Roco import, troubleshooting).
+  No screenshots. Support via GitHub Issues.
+- Not wanted: "Open with / Share to" for .z21 (import from local files is enough), DR5000 in the
+  README. The protocol log stays visible in Settings.
 
 ## Commands
 

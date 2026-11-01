@@ -1,27 +1,36 @@
 {
   "expo": {
-    "name": "AR Z21",
-    "slug": "ar-z21",
-    "scheme": "arz21",
-    "version": "1.0.0",
+    "name": "Throttle",
+    "slug": "throttle",
+    "scheme": "throttle",
+    "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.arz21",
+      "bundleIdentifier": "fi.alppirautatiet.throttle",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "Used to connect to your layout's Z21 central unit on the local Wi-Fi network."
+        "NSLocalNetworkUsageDescription": "Throttle connects to your layout's Z21 central unit on the local Wi-Fi network.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.example.arz21",
+      "package": "fi.alppirautatiet.throttle",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#1B3A52",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -33,11 +42,12 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Used to choose photos of your locomotives for the library.",
-          "cameraPermission": "Used to take photos of your locomotives for the library.",
+          "photosPermission": "Throttle uses your photos to show your locomotives in the library.",
+          "cameraPermission": "Throttle uses the camera to take photos of your locomotives for the library.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "./plugins/withReleaseSigning"
     ]
   }
 }

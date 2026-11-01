@@ -4,7 +4,7 @@ A phone and tablet app for driving model trains with a Roco **Z21**, **z21** or 
 central unit. It talks directly to the central unit over the layout's Wi-Fi, using the Z21 LAN
 protocol. There is no server, no account and no data collection.
 
-Made by Alppirautatiet for its members, as an open-source replacement for the Roco Z21 app's
+Made by Alppirautatieharrastajat ry for its members, as an open-source replacement for the Roco Z21 app's
 driving features.
 
 ## Features

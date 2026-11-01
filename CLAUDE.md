@@ -21,7 +21,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 3 | Library, photos, loco switching | done, tested on the emulator against the z21 start |
 | 4 | Split screen | done, tested on the emulator (tablet via `wm density 240`) against the z21 start |
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
-| 6 | Builds and docs | |
+| 6 | Builds and docs | code and docs done; release APK tested with a throwaway key; first real release, iOS build and member guides wait for the user |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
 (`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are
@@ -52,11 +52,18 @@ Phase 6 decisions (user, 2026-11-01):
 - Versions 0.x while in development. Android: signed APK, built and uploaded to GitHub Releases
   **by hand**; the user creates and backs up the keystore (give the command and backup advice).
 - iOS: Apple Developer and Expo accounts do not exist yet (recommended: Apple as the association
-  if it is a registered ry, Expo personal account + organisation). The user tests on their own
-  iPhone before any App Store step.
+  if it is a registered ry, Expo personal account + organisation). The paid Apple membership is
+  needed for **any** install on a real iPhone via EAS, including the user's own test. The user
+  tests on their own iPhone before any App Store step.
 - Member instructions: the user writes them with Claude; provide a factual fact sheet (Android
   APK install/update, iOS TestFlight/App Store, permissions, IP, Roco import, troubleshooting).
   No screenshots. Support via GitHub Issues.
+- Android 17 (SDK 37): `ACCESS_LOCAL_NETWORK` is a runtime permission, needed to reach the
+  central unit. React Native only declares it for debug builds; `modules/z21-udp` declares it and
+  `src/ui/localNetworkPermission.ts` requests it at start-up. The emulator does not exercise it
+  (it reaches the LAN through the host).
+- Release signing: `plugins/withReleaseSigning.js`, key from Gradle properties
+  (`THROTTLE_KEYSTORE_*`); steps in `docs/development.md`.
 - Not wanted: "Open with / Share to" for .z21 (import from local files is enough), DR5000 in the
   README. The protocol log stays visible in Settings.
 

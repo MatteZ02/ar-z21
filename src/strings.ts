@@ -255,6 +255,9 @@ export const strings = {
     connectedShort: 'Online',
     connectingShort: 'Wait',
     disconnectedShort: 'Offline',
+    localNetworkDenied:
+      'Throttle may not use the local network, so it cannot reach the central unit. Allow "Nearby devices" or local network access for Throttle in the phone settings.',
+    openSettings: 'Open settings',
     locked:
       'This z21 start is locked. Driving from apps needs the Z21 WLAN unlock code from Roco.',
   },

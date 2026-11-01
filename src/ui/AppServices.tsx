@@ -1,4 +1,5 @@
 import {createContext, ReactNode, useContext, useEffect, useState} from 'react';
+import {AppState} from 'react-native';
 import {ConnectionManager} from '../connection';
 import {NativeUdpTransport} from '../connection/nativeUdpTransport';
 import {openLibraryDatabase} from '../db/openLibraryDatabase';
@@ -12,6 +13,10 @@ import {
 import {useSettingsStore} from '../store/settingsStore';
 import {feedback} from './feedback';
 import {useConnectionLifecycle} from './hooks/useConnectionLifecycle';
+import {
+  hasLocalNetworkAccess,
+  requestLocalNetworkAccess,
+} from './localNetworkPermission';
 
 export type AppServices = {
   manager: ConnectionManager;
@@ -46,11 +51,21 @@ export const AppServicesProvider = ({children}: {children: ReactNode}) => {
     const {manager, controller} = services;
     const unbind = bindConnectionStore(manager);
     controller.start();
-    const {host, port} = useSettingsStore.getState();
-    if (host !== '') {
-      manager.connect(host, port);
-    }
+    let active = true;
+    // Ask for local network access first (Android 17+), then connect. The
+    // connection is started either way: if access is refused, the banner
+    // explains why nothing arrives.
+    requestLocalNetworkAccess()
+      .then((access) => {
+        useConnectionStore.setState({localNetworkDenied: access === 'denied'});
+        const {host, port} = useSettingsStore.getState();
+        if (active && host !== '') {
+          manager.connect(host, port);
+        }
+      })
+      .catch(() => undefined);
     return () => {
+      active = false;
       unbind();
       controller.stop();
       manager.disconnect();
@@ -58,6 +73,30 @@ export const AppServicesProvider = ({children}: {children: ReactNode}) => {
   }, [services]);
 
   useConnectionLifecycle(services.manager);
+
+  // Back from the system settings with access now allowed: connect again.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (
+        state !== 'active' ||
+        !useConnectionStore.getState().localNetworkDenied
+      ) {
+        return;
+      }
+      hasLocalNetworkAccess()
+        .then((granted) => {
+          if (granted) {
+            useConnectionStore.setState({localNetworkDenied: false});
+            const {host, port} = useSettingsStore.getState();
+            services.manager.connect(host, port);
+          }
+        })
+        .catch(() => undefined);
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, [services]);
 
   // A short circuit must be impossible to miss (brief §6.2): vibrate as well.
   useEffect(

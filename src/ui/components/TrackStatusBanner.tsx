@@ -1,4 +1,4 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {Linking, StyleSheet, Text, View} from 'react-native';
 import {TrackStatus} from '../../connection';
 import {LockCode} from '../../protocol';
 import {useConnectionStore} from '../../store/connectionStore';
@@ -21,6 +21,48 @@ export const TrackStatusBanner = () => {
   const locked = useConnectionStore(
     (state) => state.deviceInfo.lockCode === LockCode.START_LOCKED,
   );
+  const localNetworkDenied = useConnectionStore(
+    (state) => state.localNetworkDenied,
+  );
+
+  // Without local network access nothing can be connected: explain that
+  // instead of anything else.
+  if (localNetworkDenied) {
+    return (
+      <View
+        accessibilityRole="alert"
+        style={[
+          styles.banner,
+          {
+            backgroundColor: colors.statusPowerOff,
+            padding: spacing.md,
+            gap: spacing.md,
+          },
+        ]}
+      >
+        <Icon
+          name="lan-disconnect"
+          size={fontSizes.display}
+          color={colors.textOnStatus}
+        />
+        <Text
+          style={[
+            styles.text,
+            {color: colors.textOnStatus, fontSize: fontSizes.body},
+          ]}
+        >
+          {strings.connection.localNetworkDenied}
+        </Text>
+        <AppButton
+          label={strings.connection.openSettings}
+          icon="cog"
+          onPress={() => {
+            Linking.openSettings().catch(() => undefined);
+          }}
+        />
+      </View>
+    );
+  }
 
   if (!connected) {
     return null;

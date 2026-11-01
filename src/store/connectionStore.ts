@@ -10,12 +10,16 @@ type ConnectionStoreState = {
   state: ConnectionState;
   trackStatus: TrackStatus;
   deviceInfo: DeviceInfo;
+  // Android 17+: the user refused local network access, so the central
+  // unit cannot be reached.
+  localNetworkDenied: boolean;
 };
 
 export const useConnectionStore = create<ConnectionStoreState>(() => ({
   state: 'disconnected',
   trackStatus: 'unknown',
   deviceInfo: {},
+  localNetworkDenied: false,
 }));
 
 // Mirrors the manager's state into the store. Returns an unbind function.

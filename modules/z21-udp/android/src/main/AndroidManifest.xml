@@ -2,4 +2,8 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <!-- Needed to find the Wi-Fi network and bind the socket to it. -->
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+  <!-- Android 17+ (SDK 37): runtime permission for reaching the central unit
+       on the local network. React Native only declares it in debug builds.
+       Requested at start-up by src/ui/localNetworkPermission.ts. -->
+  <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
 </manifest>

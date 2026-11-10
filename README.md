@@ -30,8 +30,9 @@ protocol.
 
 ## Installation
 
-Instructions for members: see the installation guide (Finnish and English, coming soon).
-Android builds are published on the [Releases](../../releases) page.
+Instructions for members: [suomeksi](docs/install-fi.md) · [in English](docs/install-en.md).
+Android builds are published on the [Releases](../../releases) page. See also the
+[privacy policy](PRIVACY.md).
 
 ## Screenshots
 

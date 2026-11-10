@@ -21,7 +21,7 @@ UDP using the Z21 LAN protocol. There is no server, backend, accounts or analyti
 | 3 | Library, photos, loco switching | done, tested on the emulator against the z21 start |
 | 4 | Split screen | done, tested on the emulator (tablet via `wm density 240`) against the z21 start |
 | 5 | Consists, Roco export import | code done; consists driven on the z21 start, the user's export imported on the emulator; awaiting user review |
-| 6 | Builds and docs | code and docs done; release APK tested with a throwaway key; first real release, iOS build and member guides wait for the user |
+| 6 | Builds and docs | code and docs done; release APK tested with a throwaway key; member guides (`docs/install-*.md`), privacy policy and App Store drafts (`docs/app-store.md`) await user review; first real release and first iOS build (Swift never compiled) wait for the user |
 
 Roco app screenshots (`docs/reference/*_phone.PNG`, `*_tablet.PNG`), the spec PDF, a Roco export
 (`docs/reference/z21_layout_import.z21`) and `CLAUDE_CODE_PROMPT.md` exist only locally and are

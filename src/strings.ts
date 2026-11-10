@@ -281,8 +281,16 @@ export const strings = {
     shortCircuit: 'SHORT CIRCUIT: track power is off',
     programming: 'Programming mode',
     unknown: 'Track status unknown',
-    powerOn: 'Track power on',
-    resume: 'Resume',
+    // Header chip: short forms and what a tap does.
+    short: {
+      emergencyStop: 'STOPPED',
+      powerOff: 'OFF',
+      shortCircuit: 'SHORT',
+      programming: 'PROG',
+    },
+    resumeHint: 'Tap to resume. Trains continue at their speeds.',
+    powerOnHint:
+      'Tap to switch the track power on. Trains continue at their speeds.',
   },
 
   drive: {

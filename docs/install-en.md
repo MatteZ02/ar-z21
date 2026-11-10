@@ -102,7 +102,9 @@ The red **STOP** at the top of the screen stops **all** trains on the layout, at
 
 - **One tap:** all trains stop. The track stays powered.
 - **Two quick taps:** all trains stop, and the **track power is switched off** too.
-- To continue, tap **Resume** or **Track power on** in the banner that appears.
+- While the trains are stopped, a coloured sign appears next to **Online**: **STOPPED** (all
+  trains stopped), **OFF** (track power off) or **SHORT** (short circuit). To continue, **tap
+  that sign**. The trains then continue at the speeds they had.
 
 The app never asks "are you sure?" for STOP: it acts immediately.
 
@@ -130,7 +132,7 @@ this for each loco under **Vehicles**.
 | Dark banner "Throttle may not use the local network" (Android) | Tap **Open settings → Permissions → Nearby devices → Allow**.                                                                                        |
 | Nothing connects on an iPhone, and there is no error           | **Settings → Privacy & Security → Local Network → Throttle** on.                                                                                     |
 | Banner "This z21 start is locked"                              | The central unit must be unlocked for driving from apps. Tell the club.                                                                              |
-| Red **SHORT CIRCUIT** banner                                   | Something on the track is causing a short (often a derailed wagon). Remove it, then tap **Track power on**.                                          |
+| Red **SHORT** sign at the top                                  | Something on the track is causing a short (often a derailed wagon). Remove it, then tap the **SHORT** sign to switch the power back on.              |
 | "Also driven elsewhere" on a loco                              | Someone else is driving the same loco. That is allowed; you see their changes too.                                                                   |
 | The import says the file cannot be read                        | Choose the `.z21` file exported from the Roco Z21 app.                                                                                               |
 

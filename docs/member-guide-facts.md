@@ -77,8 +77,9 @@ slightly between phone makers and versions.
   side the speed slider, the direction arrows either side of the loco photo, and the loco's own
   **STOP**.
 - The red **STOP** at the top of every screen stops **all** trains. Tapping it twice quickly
-  also switches the track power off. To continue: **"Resume"** or **"Track power on"** in the
-  banner.
+  also switches the track power off. While stopped, a coloured chip beside the connection status
+  shows **"STOPPED"**, **"OFF"** or **"SHORT"** (programming mode: **"PROG"**, not tappable).
+  To continue: **tap the chip** (one tap, no confirmation). Locos continue at their speeds.
 - Choose a loco: the grid button at the bottom left opens the vehicle list; recently driven
   locos are at the bottom of the screen.
 
@@ -103,7 +104,7 @@ slightly between phone makers and versions.
 | Dark banner "Throttle may not use the local network" (Android) | Tap "Open settings" → Permissions → Nearby devices → Allow.                                                                                   |
 | Nothing connects on iPhone, no error                           | Settings → Privacy & Security → Local Network → Throttle on.                                                                                  |
 | Banner "This z21 start is locked"                              | The z21 start needs Roco's Z21 WLAN unlock code for driving from apps; ask the club.                                                          |
-| Red "SHORT CIRCUIT" banner                                     | A train or wagon is causing a short on the track. Remove the cause, then tap "Track power on".                                                |
+| Red "SHORT" chip in the header                                 | A train or wagon is causing a short on the track. Remove the cause, then tap the chip to switch the power back on.                            |
 | "Also driven elsewhere" shown on a loco                        | Someone else is driving the same loco. This is allowed; the screen shows their changes too.                                                   |
 | The import says the file cannot be read                        | Choose the `.z21` file exported from the Roco Z21 app, not another file.                                                                      |
 | Problem not listed                                             | Report it on GitHub Issues (link to be added), with the phone model and what happened.                                                        |

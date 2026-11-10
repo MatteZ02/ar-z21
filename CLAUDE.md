@@ -126,7 +126,9 @@ Current entry points:
   LibraryService, binds the stores, connects at start-up, handles background/foreground.
   `useServices()` gives access.
 - `src/ui/components/ScreenFrame.tsx`: every screen's frame (header with connection indicator
-  and global STOP, track status banner).
+  and global STOP, connection-problem banner). Track status is a fixed-size chip in the header
+  (`TrackStatusChip.tsx`), so the screen never moves when it changes; one tap on it restores
+  power (decided by the user).
 - `src/ui/screens/DriveScreen.tsx`: one throttle, or two side by side in landscape from
   `SPLIT_MIN_WIDTH` (`src/ui/layout.ts`, 960 dp; decided by the user). Function rows are at
   most `MAX_FUNCTION_ROW_HEIGHT`; taller areas stack several function pages. `src/ui/components/Throttle.tsx` is one throttle, after

@@ -5,13 +5,15 @@ import {useTheme} from '../../theme';
 import {ConnectionIndicator} from './ConnectionIndicator';
 import {GlobalStopButton} from './GlobalStopButton';
 import {Icon} from './Icon';
+import {TrackStatusChip} from './TrackStatusChip';
 
 type Props = {
   title: string;
 };
 
 // Header of every screen: back and title on the left, the global STOP in the
-// centre (decided by the user), the connection indicator on the right. The
+// centre (decided by the user), the track status chip and the connection
+// indicator on the right. The
 // two sides get equal widths so STOP is always exactly centred.
 export const AppHeader = ({title}: Props) => {
   const {colors, spacing, fontSizes, minTouchTarget} = useTheme();
@@ -74,7 +76,8 @@ export const AppHeader = ({title}: Props) => {
         </Text>
       </View>
       <GlobalStopButton />
-      <View style={[styles.side, styles.end]}>
+      <View style={[styles.side, styles.end, {gap: spacing.xs}]}>
+        <TrackStatusChip />
         <ConnectionIndicator />
       </View>
     </View>

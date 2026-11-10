@@ -3,14 +3,15 @@ import {StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '../../theme';
 import {AppHeader} from './AppHeader';
-import {TrackStatusBanner} from './TrackStatusBanner';
+import {ConnectionBanner} from './ConnectionBanner';
 
 type Props = {
   title: string;
   children: ReactNode;
 };
 
-// Every screen: header with the global STOP, track status, then content.
+// Every screen: header with the global STOP and track status, a banner for
+// connection problems, then content.
 export const ScreenFrame = ({title, children}: Props) => {
   const {colors} = useTheme();
   return (
@@ -19,7 +20,7 @@ export const ScreenFrame = ({title, children}: Props) => {
       style={[styles.frame, {backgroundColor: colors.background}]}
     >
       <AppHeader title={title} />
-      <TrackStatusBanner />
+      <ConnectionBanner />
       {children}
     </SafeAreaView>
   );

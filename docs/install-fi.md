@@ -104,7 +104,9 @@ Näytön yläreunan punainen **STOP** pysäyttää **kaikki** radan junat heti.
 
 - **Yksi napautus:** kaikki junat pysähtyvät. Raidevirta pysyy päällä.
 - **Kaksi nopeaa napautusta:** kaikki junat pysähtyvät, ja myös **raidevirta katkaistaan**.
-- Jatka napauttamalla esiin tulevasta palkista **Resume** tai **Track power on**.
+- Kun junat ovat pysähdyksissä, **Online**-merkinnän viereen tulee värillinen merkki:
+  **STOPPED** (kaikki junat pysäytetty), **OFF** (raidevirta pois) tai **SHORT** (oikosulku).
+  Jatka **napauttamalla tätä merkkiä**. Junat jatkavat samoilla nopeuksilla kuin ennen.
 
 Sovellus ei koskaan kysy STOPista "oletko varma?", vaan toimii heti.
 
@@ -133,7 +135,7 @@ muuttaa tämän kunkin veturin kohdalta **Vehicles**-näkymässä.
 | Tumma palkki "Throttle may not use the local network" (Android) | Napauta **Open settings → Käyttöoikeudet → Lähellä olevat laitteet → Salli**.                                                              |
 | iPhonessa mikään ei yhdistä, eikä virheilmoitusta tule          | **Asetukset → Tietosuoja ja turvallisuus → Paikallisverkko → Throttle** päälle.                                                            |
 | Palkki "This z21 start is locked"                               | Keskusyksikön lukitus pitää avata sovelluksilla ajamista varten. Kerro kerholle.                                                           |
-| Punainen **SHORT CIRCUIT** -palkki                              | Jokin radalla aiheuttaa oikosulun (usein suistunut vaunu). Poista syy ja napauta **Track power on**.                                       |
+| Punainen **SHORT**-merkki ylhäällä                              | Jokin radalla aiheuttaa oikosulun (usein suistunut vaunu). Poista syy ja kytke virta takaisin napauttamalla **SHORT**-merkkiä.             |
 | "Also driven elsewhere" veturin kohdalla                        | Joku muu ajaa samaa veturia. Se on sallittua; näet myös hänen muutoksensa.                                                                 |
 | Tuonti ilmoittaa, ettei tiedostoa voi lukea                     | Valitse Rocon Z21-sovelluksesta viety `.z21`-tiedosto.                                                                                     |
 

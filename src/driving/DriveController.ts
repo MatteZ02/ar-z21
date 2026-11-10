@@ -206,7 +206,7 @@ export class DriveController {
   // done, so the UI can give matching feedback.
   globalStop(mode: StopMode): StopAction {
     const action = this.stopTapper.tap(mode);
-    // Loco displays are not changed here: the track status banner shows the
+    // Loco displays are not changed here: the track status chip shows the
     // stop, and the connection asks for the locos' state afterwards, so the
     // screen shows what the central unit actually holds.
     if (action === 'emergencyStop') {

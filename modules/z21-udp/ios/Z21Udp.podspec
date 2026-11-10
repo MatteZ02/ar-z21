@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version        = '0.1.0'
   s.summary        = 'UDP socket for the Z21 LAN protocol'
   s.description    = 'Minimal UDP socket used to talk to Z21-compatible central units.'
-  s.license        = 'UNLICENSED'
+  s.license        = 'MIT'
   s.author         = ''
   s.homepage       = 'https://github.com/MatteZ02/ar-z21'
   s.platforms      = {

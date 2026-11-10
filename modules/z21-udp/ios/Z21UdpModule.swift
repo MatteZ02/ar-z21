@@ -71,6 +71,9 @@ final class InvalidPortException: GenericException<Int> {
   }
 }
 
+// Pause after a receive error so a persistent error cannot spin the CPU.
+private let errorPause: DispatchTimeInterval = .milliseconds(500)
+
 // One UDP "connection" to the central unit (Network.framework). Sends and
 // receives only to/from host:port. Everything runs on a private serial queue,
 // so sends keep their order.
@@ -89,7 +92,11 @@ final class UdpSocket {
     onMessage: @escaping ([Int]) -> Void,
     onError: @escaping (String) -> Void
   ) {
-    self.connection = NWConnection(host: NWEndpoint.Host(host), port: port, using: .udp)
+    // The layout's Wi-Fi usually has no internet access; never fall back to
+    // mobile data (Android binds the socket to Wi-Fi for the same reason).
+    let parameters = NWParameters.udp
+    parameters.prohibitedInterfaceTypes = [.cellular]
+    self.connection = NWConnection(host: NWEndpoint.Host(host), port: port, using: parameters)
     self.queue = DispatchQueue(label: "z21-udp-\(id)")
     self.onMessage = onMessage
     self.onError = onError
@@ -146,10 +153,23 @@ final class UdpSocket {
       if let data = data, !data.isEmpty {
         self.onMessage(data.map { Int($0) })
       }
-      if let error = error {
-        self.onError(error.localizedDescription)
+      guard let error = error else {
+        self.receive()
+        return
       }
-      self.receive()
+      self.onError(error.localizedDescription)
+      switch self.connection.state {
+      case .failed(_), .cancelled:
+        // A failed connection completes every receive at once with an error.
+        // Stop here; the JS side times out and opens a new socket.
+        return
+      default:
+        // E.g. ICMP port unreachable while the central unit is offline.
+        self.queue.asyncAfter(deadline: .now() + errorPause) { [weak self] in
+          guard let self = self, !self.closed else { return }
+          self.receive()
+        }
+      }
     }
   }
 }

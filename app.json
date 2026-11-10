@@ -10,7 +10,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "fi.alppirautatiet.throttle",
-      "buildNumber": "1",
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Throttle connects to your layout's Z21 central unit on the local Wi-Fi network.",
         "ITSAppUsesNonExemptEncryption": false
@@ -48,6 +47,17 @@
         }
       ],
       "./plugins/withReleaseSigning"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "b955ca97-6ccd-492c-8bc4-c7e5994e7245"
+      }
+    },
+    "owner": "alppirautatiet"
   }
 }

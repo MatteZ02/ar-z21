@@ -242,9 +242,15 @@ npx eas-cli build -p ios --profile production   # build number increases automat
 npx eas-cli submit -p ios                         # uploads to App Store Connect
 ```
 
+The iOS build number is kept by EAS (`appVersionSource: remote` in `eas.json`), not in
+`app.json`, so a build never leaves an uncommitted change. The first build asks to initialise it;
+answer with 1. `version` in `app.json` is still the version members see. (Android release builds
+are made by hand and still use `android.versionCode` from `app.json`.)
+
 The app must first be created in App Store Connect with the bundle ID
 `fi.alppirautatiet.throttle`. TestFlight testers are invited from App Store Connect. Unlisted App
-Store distribution is requested from Apple after the first version is approved.
+Store distribution is requested from Apple after the first version is approved. Store texts,
+privacy answers and the review notes are drafted in [app-store.md](app-store.md).
 
 The Swift UDP code (`modules/z21-udp/ios`) has not been compiled yet; the first EAS build is its
 first test.

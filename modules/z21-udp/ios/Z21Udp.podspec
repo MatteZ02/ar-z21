@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.description    = 'Minimal UDP socket used to talk to Z21-compatible central units.'
   s.license        = 'MIT'
   s.author         = ''
-  s.homepage       = 'https://github.com/MatteZ02/ar-z21'
+  s.homepage       = 'https://github.com/MatteZ02/throttle'
   s.platforms      = {
     :ios => '16.4'
   }

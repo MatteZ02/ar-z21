@@ -19,6 +19,6 @@ Throttle does not collect, store or share any personal data with us or anyone el
 
 ## Contact
 
-Questions and problems: [GitHub Issues](https://github.com/MatteZ02/ar-z21/issues).
+Questions and problems: [GitHub Issues](https://github.com/MatteZ02/throttle/issues).
 
 If this policy changes, the new version is published here.

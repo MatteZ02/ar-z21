@@ -67,9 +67,9 @@ compatible with.
 `model railway,model train,DCC,locomotive,train control,layout,consist,digital,railroad`
 (86)
 
-**Support URL:** `https://github.com/MatteZ02/ar-z21/issues`
+**Support URL:** `https://github.com/MatteZ02/throttle/issues`
 
-**Marketing URL (optional):** `https://github.com/MatteZ02/ar-z21`
+**Marketing URL (optional):** `https://github.com/MatteZ02/throttle`
 
 **Copyright:** `2026 Alppirautatieharrastajat ry`
 
@@ -82,12 +82,12 @@ the club's own loco photos, not Roco's.
 
 ## App information
 
-| Field              | Value                                                        |
-| ------------------ | ------------------------------------------------------------ |
-| Category           | Primary: Utilities; secondary: Entertainment                 |
-| Content rights     | Does not contain, show or access third-party content         |
-| Age rating         | Answer "None" / "No" to every question → 4+                  |
-| Privacy policy URL | `https://github.com/MatteZ02/ar-z21/blob/release/PRIVACY.md` |
+| Field              | Value                                                          |
+| ------------------ | -------------------------------------------------------------- |
+| Category           | Primary: Utilities; secondary: Entertainment                   |
+| Content rights     | Does not contain, show or access third-party content           |
+| Age rating         | Answer "None" / "No" to every question → 4+                    |
+| Privacy policy URL | `https://github.com/MatteZ02/throttle/blob/release/PRIVACY.md` |
 
 The privacy policy URL must open without a login, so it works only while the repository is
 public. If it is private, publish `PRIVACY.md` elsewhere (e.g. the club website or GitHub

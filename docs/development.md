@@ -185,9 +185,10 @@ In `app.json`, for every release:
 ```powershell
 npx expo prebuild --platform android --clean
 cd android
-.\gradlew.bat app:assembleRelease -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+.\gradlew.bat app:assembleRelease "-PreactNativeArchitectures=arm64-v8a,armeabi-v7a"
 ```
 
+(The quotes are needed in PowerShell, which would otherwise split the argument at the comma.)
 `--clean` regenerates `android/` from `app.json`, so version and icon changes are picked up. The
 architecture list covers real phones and keeps the APK small (emulators need `x86_64`). The APK is
 `android\app\build\outputs\apk\release\app-release.apk`.
@@ -195,7 +196,8 @@ architecture list covers real phones and keeps the APK small (emulators need `x8
 Check the signature (it must show your certificate, not "Android Debug"):
 
 ```powershell
-& "$env:ANDROID_HOME\build-tools\<version>\apksigner.bat" verify --print-certs app\build\outputs\apk\release\app-release.apk
+$bt = Get-ChildItem "$env:ANDROID_HOME\build-tools" | Sort-Object {[version]$_.Name} | Select-Object -Last 1
+& "$($bt.FullName)\apksigner.bat" verify --print-certs app\build\outputs\apk\release\app-release.apk
 ```
 
 ### 5. Test, then publish

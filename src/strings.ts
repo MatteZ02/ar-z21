@@ -1,6 +1,11 @@
-// All user-visible text lives here. Components import from this module instead
-// of using string literals in JSX.
-export const strings = {
+// All user-visible text lives here. Components import `strings` from this
+// module instead of using string literals in JSX.
+//
+// Languages: `en` below is the reference. A translation is another object of
+// type `Strings` added to LANGUAGES (and LANGUAGE_NAMES); the settings then
+// offer it automatically. The app picks the language at start-up and when the
+// setting changes (setLanguage); see resolveLanguage.
+const en = {
   appName: 'Throttle',
   back: 'Back',
 
@@ -300,8 +305,6 @@ export const strings = {
     speedStep: 'Step',
     of: 'of',
     speed: 'Speed',
-    forward: 'Forward',
-    reverse: 'Reverse',
     setForward: 'Drive forward',
     setReverse: 'Drive in reverse',
     locoStop: 'STOP',
@@ -328,9 +331,11 @@ export const strings = {
     speedUnits: {kmh: 'km/h', mph: 'mph'},
     library: 'Choose from vehicles',
     recent: 'Recently driven',
+    allVehicles: 'All vehicles',
     switchTo: (name: string) => `Drive ${name}`,
     current: 'Now driving',
     addressOnly: (address: number) => `Address ${address}`,
+    changeAddressHint: 'Opens a window to drive another address.',
     noLoco: 'No loco on this throttle yet.',
     consistEmpty: 'This consist has no locos. Add locos to it in Vehicles.',
     members: 'Locos in this consist',
@@ -371,6 +376,19 @@ export const strings = {
         detail: 'Every tap switches the track power off.',
       },
     },
+    vehicleBarSection: 'Vehicle bar on the drive screen',
+    vehicleBarModes: {
+      recent: {
+        title: 'Recently driven',
+        detail: 'The last driven vehicle comes first.',
+      },
+      all: {
+        title: 'All vehicles',
+        detail: 'Every vehicle, in the order of the vehicle list.',
+      },
+    },
+    languageSection: 'Language',
+    languageSystem: (language: string) => `Phone language (${language})`,
     developerSection: 'For developers',
     connectionTest: 'Connection test and protocol log',
   },
@@ -418,3 +436,70 @@ export const strings = {
     clearLog: 'Clear log',
   },
 } as const;
+
+// The shape every language must have: the same keys and function signatures
+// as English, with any text.
+type Widen<T> = T extends string
+  ? string
+  : T extends (...args: infer A) => infer R
+    ? (...args: A) => Widen<R>
+    : T extends object
+      ? {readonly [K in keyof T]: Widen<T[K]>}
+      : T;
+export type Strings = Widen<typeof en>;
+
+export const LANGUAGES = {en} satisfies Record<string, Strings>;
+export type LanguageCode = keyof typeof LANGUAGES;
+export type LanguageSetting = 'system' | LanguageCode;
+export const DEFAULT_LANGUAGE: LanguageCode = 'en';
+
+// Each language's name in that language, so it can be found whatever
+// language the app is in.
+export const LANGUAGE_NAMES: Record<LanguageCode, string> = {
+  en: 'English',
+};
+
+const isLanguageCode = (code: string): code is LanguageCode =>
+  Object.prototype.hasOwnProperty.call(LANGUAGES, code);
+
+// The language to show: the chosen one, or for 'system' the first of the
+// phone's languages (BCP 47 tags such as "fi-FI", most preferred first) that
+// the app has, else English.
+export const resolveLanguage = (
+  setting: LanguageSetting | string,
+  systemLocales: readonly string[],
+): LanguageCode => {
+  if (setting !== 'system' && isLanguageCode(setting)) {
+    return setting;
+  }
+  for (const locale of systemLocales) {
+    const code = locale.split(/[-_]/)[0].toLowerCase();
+    if (isLanguageCode(code)) {
+      return code;
+    }
+  }
+  return DEFAULT_LANGUAGE;
+};
+
+// The phone's language, from the JavaScript engine's default locale (Hermes
+// reads it from the OS). Empty if unavailable.
+export const systemLocales = (): string[] => {
+  try {
+    return [Intl.DateTimeFormat().resolvedOptions().locale];
+  } catch {
+    return [];
+  }
+};
+
+// The texts in use. One object for the app's lifetime, so imports stay
+// valid; setLanguage swaps its contents.
+export const strings: Strings = {...en};
+
+let currentLanguage: LanguageCode = DEFAULT_LANGUAGE;
+
+export const setLanguage = (code: LanguageCode): void => {
+  if (code !== currentLanguage) {
+    Object.assign(strings, LANGUAGES[code]);
+    currentLanguage = code;
+  }
+};

@@ -22,7 +22,8 @@ type Props = {
 
 const STEP_OPTIONS: SpeedSteps[] = [14, 28, 128];
 
-// Temporary until the loco library (Phase 3): pick a loco by address.
+// Pick a loco by address (one that is not in the library): from Vehicles →
+// Drive by address, or by tapping the address on the drive screen.
 export const LocoPicker = ({
   visible,
   address,

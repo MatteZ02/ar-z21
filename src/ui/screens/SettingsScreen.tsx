@@ -11,8 +11,15 @@ import {
 import {DeviceInfo} from '../../connection';
 import {StopMode} from '../../driving/globalStop';
 import {useConnectionStore} from '../../store/connectionStore';
-import {useSettingsStore} from '../../store/settingsStore';
-import {strings} from '../../strings';
+import {useSettingsStore, VEHICLE_BAR_MODES} from '../../store/settingsStore';
+import {
+  LANGUAGE_NAMES,
+  LanguageCode,
+  LanguageSetting,
+  resolveLanguage,
+  strings,
+  systemLocales,
+} from '../../strings';
 import {useTheme} from '../../theme';
 import {useServices} from '../AppServices';
 import {AppButton} from '../components/AppButton';
@@ -90,6 +97,52 @@ export const SettingsScreen = () => {
     </View>
   );
 
+  // One choice out of a list, each with an optional explanation.
+  const radioGroup = <T extends string>(
+    options: {value: T; title: string; detail?: string}[],
+    value: T,
+    onChange: (value: T) => void,
+  ) => (
+    <View accessibilityRole="radiogroup" style={{gap: spacing.sm}}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="radio"
+            accessibilityState={{selected}}
+            onPress={() => {
+              onChange(option.value);
+            }}
+            style={[
+              styles.option,
+              {
+                minHeight: minTouchTarget,
+                gap: spacing.md,
+                padding: spacing.sm,
+                borderRadius: radii.md,
+                borderColor: selected ? colors.accent : colors.border,
+                backgroundColor: colors.surface,
+              },
+            ]}
+          >
+            <Icon
+              name={selected ? 'radiobox-marked' : 'radiobox-blank'}
+              size={fontSizes.title}
+              color={selected ? colors.accent : colors.textSecondary}
+            />
+            <View style={styles.flex}>
+              <Text style={textStyle}>{option.title}</Text>
+              {option.detail !== undefined && (
+                <Text style={secondaryStyle}>{option.detail}</Text>
+              )}
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
   return (
     <ScreenFrame title={strings.settings.title}>
       <ScrollView
@@ -153,46 +206,51 @@ export const SettingsScreen = () => {
 
         {section(
           strings.settings.stopSection,
-          <View accessibilityRole="radiogroup" style={{gap: spacing.sm}}>
-            {STOP_MODES.map((mode) => {
-              const selected = settings.stopMode === mode;
-              return (
-                <Pressable
-                  key={mode}
-                  accessibilityRole="radio"
-                  accessibilityState={{selected}}
-                  onPress={() => {
-                    settings.update({stopMode: mode});
-                  }}
-                  style={[
-                    styles.option,
-                    {
-                      minHeight: minTouchTarget,
-                      gap: spacing.md,
-                      padding: spacing.sm,
-                      borderRadius: radii.md,
-                      borderColor: selected ? colors.accent : colors.border,
-                      backgroundColor: colors.surface,
-                    },
-                  ]}
-                >
-                  <Icon
-                    name={selected ? 'radiobox-marked' : 'radiobox-blank'}
-                    size={fontSizes.title}
-                    color={selected ? colors.accent : colors.textSecondary}
-                  />
-                  <View style={styles.flex}>
-                    <Text style={textStyle}>
-                      {strings.settings.stopModes[mode].title}
-                    </Text>
-                    <Text style={secondaryStyle}>
-                      {strings.settings.stopModes[mode].detail}
-                    </Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </View>,
+          radioGroup(
+            STOP_MODES.map((mode) => ({
+              value: mode,
+              ...strings.settings.stopModes[mode],
+            })),
+            settings.stopMode,
+            (stopMode) => {
+              settings.update({stopMode});
+            },
+          ),
+        )}
+
+        {section(
+          strings.settings.vehicleBarSection,
+          radioGroup(
+            VEHICLE_BAR_MODES.map((mode) => ({
+              value: mode,
+              ...strings.settings.vehicleBarModes[mode],
+            })),
+            settings.vehicleBar,
+            (vehicleBar) => {
+              settings.update({vehicleBar});
+            },
+          ),
+        )}
+
+        {section(
+          strings.settings.languageSection,
+          radioGroup<LanguageSetting>(
+            [
+              {
+                value: 'system',
+                title: strings.settings.languageSystem(
+                  LANGUAGE_NAMES[resolveLanguage('system', systemLocales())],
+                ),
+              },
+              ...(Object.keys(LANGUAGE_NAMES) as LanguageCode[]).map(
+                (code) => ({value: code, title: LANGUAGE_NAMES[code]}),
+              ),
+            ],
+            settings.language,
+            (language) => {
+              settings.update({language});
+            },
+          ),
         )}
 
         {section(

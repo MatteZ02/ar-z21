@@ -1,6 +1,6 @@
 import {useRouter} from 'expo-router';
 import {useEffect, useMemo, useRef, useState} from 'react';
-import {StyleSheet, Text, View} from 'react-native';
+import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {useShallow} from 'zustand/react/shallow';
 import {
   CONSIST_MAX_SPEED,
@@ -15,6 +15,7 @@ import {useConnectionStore} from '../../store/connectionStore';
 import {useLibraryStore} from '../../store/libraryStore';
 import {useLocoStore} from '../../store/locoStore';
 import {
+  chooseAddressToDrive,
   useSettingsStore,
   useThrottleSelection,
 } from '../../store/settingsStore';
@@ -29,6 +30,7 @@ import {DirectionControl} from './DirectionControl';
 import {FunctionGrid} from './FunctionGrid';
 import {Icon} from './Icon';
 import {LocoPhoto} from './LocoPhoto';
+import {LocoPicker} from './LocoPicker';
 import {SpeedSlider} from './SpeedSlider';
 import {StripItem, VehicleStrip} from './VehicleStrip';
 
@@ -72,6 +74,11 @@ export const Throttle = ({index}: Props) => {
   const locos = useLibraryStore((state) => state.locos);
   const consists = useLibraryStore((state) => state.consists);
   const recent = useSettingsStore((state) => state.recent);
+  const vehicleBar = useSettingsStore((state) => state.vehicleBar);
+  const order = useLibraryStore((state) => state.order);
+  // The bottom strip: recently driven first, or the whole vehicle list.
+  const barRefs = vehicleBar === 'all' ? order : recent;
+  const [addressPicker, setAddressPicker] = useState(false);
 
   const target = useMemo((): DriveTarget | null => {
     const libraryMember = (loco: Loco): DriveMember => ({
@@ -142,9 +149,9 @@ export const Throttle = ({index}: Props) => {
     }
   }, [selection, locos, consists]);
 
-  const recentItems = useMemo(
+  const barItems = useMemo(
     () =>
-      recent.flatMap((ref): StripItem[] => {
+      barRefs.flatMap((ref): StripItem[] => {
         if (ref.kind === 'loco') {
           const loco = locos.find((entry) => entry.id === ref.id);
           return loco === undefined
@@ -174,7 +181,7 @@ export const Throttle = ({index}: Props) => {
           },
         ];
       }),
-    [recent, locos, consists],
+    [barRefs, locos, consists],
   );
 
   const openLibrary = () => {
@@ -214,19 +221,47 @@ export const Throttle = ({index}: Props) => {
       ) : target.members.length === 0 ? (
         empty(strings.drive.consistEmpty)
       ) : (
-        <ThrottleControls key={target.key} target={target} />
+        <ThrottleControls
+          key={target.key}
+          target={target}
+          onEditAddress={
+            selection.kind === 'address'
+              ? () => {
+                  setAddressPicker(true);
+                }
+              : undefined
+          }
+        />
+      )}
+      {selection.kind === 'address' && (
+        <LocoPicker
+          visible={addressPicker}
+          address={selection.address}
+          speedSteps={selection.speedSteps}
+          onCancel={() => {
+            setAddressPicker(false);
+          }}
+          onChoose={(address, speedSteps) => {
+            setAddressPicker(false);
+            chooseAddressToDrive(index, address, speedSteps);
+          }}
+        />
       )}
       <VehicleStrip
-        items={recentItems}
+        items={barItems}
         currentKey={target === null ? null : target.key}
         onPick={(key) => {
-          const ref = recent.find((entry) => refKey(entry) === key);
+          const ref = barRefs.find((entry) => refKey(entry) === key);
           if (ref !== undefined) {
             pickVehicle(index, ref);
           }
         }}
         onOpenLibrary={openLibrary}
-        label={strings.drive.recent}
+        label={
+          vehicleBar === 'all'
+            ? strings.drive.allVehicles
+            : strings.drive.recent
+        }
         itemLabel={(item, current) =>
           current
             ? `${strings.drive.current}: ${item.name}`
@@ -237,7 +272,14 @@ export const Throttle = ({index}: Props) => {
   );
 };
 
-const ThrottleControls = ({target}: {target: DriveTarget}) => {
+const ThrottleControls = ({
+  target,
+  onEditAddress,
+}: {
+  target: DriveTarget;
+  // Set when the throttle drives a plain address that can be changed.
+  onEditAddress?: () => void;
+}) => {
   const {colors, spacing, fontSizes, minTouchTarget, radii} = useTheme();
   const {controller} = useServices();
   const connected = useConnectionStore((state) => state.state === 'connected');
@@ -430,19 +472,47 @@ const ThrottleControls = ({target}: {target: DriveTarget}) => {
                 style={styles.photo}
               />
             </DirectionControl>
-            <Text
-              numberOfLines={2}
-              style={[
-                styles.locoName,
-                {color: colors.textPrimary, fontSize: fontSizes.body},
-              ]}
-            >
-              {target.name}
-              {'  '}
-              <Text style={{color: colors.textSecondary}}>
-                {shown.forward ? strings.drive.forward : strings.drive.reverse}
+            {onEditAddress === undefined ? (
+              <Text
+                numberOfLines={2}
+                style={[
+                  styles.locoName,
+                  {color: colors.textPrimary, fontSize: fontSizes.body},
+                ]}
+              >
+                {target.name}
               </Text>
-            </Text>
+            ) : (
+              // A plain address: tap the name to drive another address.
+              <Pressable
+                accessibilityRole="button"
+                accessibilityHint={strings.drive.changeAddressHint}
+                onPress={onEditAddress}
+                style={({pressed}) => [
+                  styles.editableName,
+                  {
+                    minHeight: minTouchTarget,
+                    gap: spacing.xs,
+                    opacity: pressed ? 0.6 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    styles.locoName,
+                    {color: colors.textPrimary, fontSize: fontSizes.body},
+                  ]}
+                >
+                  {target.name}
+                </Text>
+                <Icon
+                  name="pencil"
+                  size={fontSizes.body}
+                  color={colors.textSecondary}
+                />
+              </Pressable>
+            )}
 
             {lives.some((live) => live?.known === false) && connected && (
               <Text
@@ -530,6 +600,11 @@ const styles = StyleSheet.create({
   locoName: {
     textAlign: 'center',
     fontWeight: '700',
+  },
+  editableName: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   flex: {
     flex: 1,

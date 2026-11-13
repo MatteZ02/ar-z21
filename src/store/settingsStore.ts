@@ -5,6 +5,7 @@ import {DEFAULT_STOP_MODE, StopMode} from '../driving/globalStop';
 import {withoutRecent, withRecent} from '../library/recent';
 import {VehicleRef} from '../library/types';
 import {SpeedSteps, Z21_DEFAULT_PORT} from '../protocol';
+import {LanguageSetting} from '../strings';
 import {
   DEFAULT_THROTTLES,
   migrateSettings,
@@ -26,7 +27,16 @@ export type Settings = {
   throttles: ThrottleSelection[];
   // Locos and consists driven recently, latest first (quick-switch strip).
   recent: VehicleRef[];
+  // What the strip below the throttle shows.
+  vehicleBar: VehicleBarMode;
+  // 'system' follows the phone; unsupported languages fall back to English.
+  language: LanguageSetting;
 };
+
+// 'recent': recently driven, latest first. 'all': the whole vehicle list in
+// its own order (Vehicles → Arrange), top of the list leftmost.
+export type VehicleBarMode = 'recent' | 'all';
+export const VEHICLE_BAR_MODES: VehicleBarMode[] = ['recent', 'all'];
 
 type SettingsStore = Settings & {
   update: (changes: Partial<Settings>) => void;
@@ -80,6 +90,8 @@ export const useSettingsStore = create<SettingsStore>()(
       stopMode: DEFAULT_STOP_MODE,
       throttles: DEFAULT_THROTTLES,
       recent: [],
+      vehicleBar: 'recent',
+      language: 'system',
       update: (changes) => {
         set(changes);
       },

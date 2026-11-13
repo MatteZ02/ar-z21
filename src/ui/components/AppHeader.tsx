@@ -5,15 +5,15 @@ import {useTheme} from '../../theme';
 import {ConnectionIndicator} from './ConnectionIndicator';
 import {GlobalStopButton} from './GlobalStopButton';
 import {Icon} from './Icon';
-import {TrackStatusChip} from './TrackStatusChip';
+import {TrackStatusChip, useStatusInStopPlace} from './TrackStatusChip';
 
 type Props = {
   title: string;
 };
 
-// Header of every screen: back and title on the left, the global STOP in the
-// centre (decided by the user), the track status chip and the connection
-// indicator on the right. The
+// Header of every screen: back and title on the left, the global STOP (or the
+// track status in its place) in the centre (decided by the user), the
+// programming-mode chip and the connection indicator on the right. The
 // two sides get equal widths so STOP is always exactly centred.
 export const AppHeader = ({title}: Props) => {
   const {colors, spacing, fontSizes, minTouchTarget} = useTheme();
@@ -22,6 +22,10 @@ export const AppHeader = ({title}: Props) => {
   // the navigator's canGoBack() is read once and can still be false while the
   // screen is being pushed.
   const canGoBack = usePathname() !== '/';
+  // While the track is stopped, off or short-circuited, its status (which
+  // restores it) takes STOP's place: STOP would do nothing more then
+  // (decided by the user).
+  const statusInStopPlace = useStatusInStopPlace();
 
   return (
     <View
@@ -75,9 +79,13 @@ export const AppHeader = ({title}: Props) => {
           {title}
         </Text>
       </View>
-      <GlobalStopButton />
+      {statusInStopPlace ? (
+        <TrackStatusChip place="stop" />
+      ) : (
+        <GlobalStopButton />
+      )}
       <View style={[styles.side, styles.end, {gap: spacing.xs}]}>
-        <TrackStatusChip />
+        <TrackStatusChip place="side" />
         <ConnectionIndicator />
       </View>
     </View>

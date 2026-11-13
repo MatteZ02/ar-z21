@@ -68,7 +68,7 @@ export const lightColors: ColorTokens = {
 
   statusNormal: palette.green700,
   statusEmergencyStop: palette.amber500,
-  statusPowerOff: palette.gray700,
+  statusPowerOff: palette.blue600,
   statusShortCircuit: palette.red800,
   statusProgramming: palette.purple700,
   textOnStatus: palette.white,
@@ -105,7 +105,8 @@ export const darkColors: ColorTokens = {
 
   statusNormal: palette.green700,
   statusEmergencyStop: palette.amber300,
-  statusPowerOff: palette.gray600,
+  // Not blue300 (the dark accent): white text needs the darker blue.
+  statusPowerOff: palette.blue600,
   statusShortCircuit: palette.red700,
   statusProgramming: palette.purple700,
   textOnStatus: palette.white,

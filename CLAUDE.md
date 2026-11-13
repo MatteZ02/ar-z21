@@ -112,7 +112,9 @@ src/
                         applyImport.ts, openRocoExport.ts (native: picker, fflate, photos)
   ui/screens, ui/components
   theme/                palette.ts, colors.ts (semantic light/dark), tokens.ts, useTheme()
-  strings.ts            ALL user-visible text (English only)
+  strings.ts            ALL user-visible text. English is the reference; translations are
+                        `Strings` objects in LANGUAGES. Settings → Language: phone language
+                        (default) or a fixed one; unsupported → English.
 ```
 
 Not all folders exist yet. Create them in the phase that needs them.
@@ -164,7 +166,10 @@ paths (see `docs/development.md`). Emulator AVD: `Medium_Phone_API_37.0` (x86_64
 
 **Safety:**
 - The global STOP is always visible on driving screens. No confirmation on driving actions or STOP.
-  It sits in the header, horizontally centred (decided by the user).
+  It sits in the header, horizontally centred (decided by the user). Exception (user, 2026-11-13):
+  while the track is in emergency stop, power off or short circuit, the track status takes STOP's
+  place and a tap restores the track; for `STOP_RESTORE_GUARD_MS` after a STOP tap, a tap there
+  still counts as a STOP tap, so a double tap or a repeat never starts trains.
 - Changing direction while moving sends the new direction at the current speed, without stopping
   first: DCC decoders handle the reversal (with momentum they brake, reverse, accelerate). Decided
   by the user; revisit only if hardware shows otherwise.

@@ -221,6 +221,16 @@ export class DriveController {
     this.connection.setTrackPower(on);
   }
 
+  // A tap on the track status shown in STOP's place: restores the track,
+  // unless STOP was tapped just before, in which case it is another STOP tap.
+  restoreOrStop(mode: StopMode): StopAction | 'restore' {
+    if (this.stopTapper.restoreAllowed()) {
+      this.connection.setTrackPower(true);
+      return 'restore';
+    }
+    return this.globalStop(mode);
+  }
+
   private sendDrive(
     address: number,
     loco: WatchedLoco,

@@ -1,4 +1,8 @@
-import {GlobalStopTapper, STOP_DOUBLE_TAP_WINDOW_MS} from '../globalStop';
+import {
+  GlobalStopTapper,
+  STOP_DOUBLE_TAP_WINDOW_MS,
+  STOP_RESTORE_GUARD_MS,
+} from '../globalStop';
 
 const tapperAt = (times: number[]) => {
   let index = 0;
@@ -41,6 +45,14 @@ describe('GlobalStopTapper', () => {
     const tapper = tapperAt([0, 100]);
     expect(tapper.tap('emergencyStopOnly')).toBe('emergencyStop');
     expect(tapper.tap('emergencyStopOnly')).toBe('emergencyStop');
+  });
+
+  it('blocks restoring the track shortly after a STOP tap', () => {
+    const tapper = tapperAt([0, 1000, 1000 + STOP_RESTORE_GUARD_MS, 99999]);
+    expect(tapper.restoreAllowed()).toBe(true);
+    tapper.tap('emergencyStopThenPowerOff');
+    expect(tapper.restoreAllowed()).toBe(false);
+    expect(tapper.restoreAllowed()).toBe(true);
   });
 
   it('follows the power-off mode', () => {

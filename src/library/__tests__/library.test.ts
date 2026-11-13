@@ -81,6 +81,32 @@ describe('function slots', () => {
     expect(functions[0].icon).toBe('light');
     expect(functions.every((f) => f.slot < MAX_SLOTS)).toBe(true);
   });
+
+  it('places default functions row by row, left then right', () => {
+    const functions = defaultFunctions(29);
+    const numbers = (page: number) =>
+      pageRows(functions, page).map((row) =>
+        row.map((cell) => cell?.number ?? null),
+      );
+    expect(numbers(0)).toEqual([
+      [0, 1],
+      [2, 3],
+      [4, 5],
+      [6, 7],
+      [8, 9],
+      [10, 11],
+    ]);
+    expect(numbers(1)[0]).toEqual([12, 13]);
+    expect(numbers(2)).toEqual([
+      [24, 25],
+      [26, 27],
+      [28, null],
+      [null, null],
+      [null, null],
+      [null, null],
+    ]);
+    expect(new Set(functions.map((f) => f.slot)).size).toBe(29);
+  });
 });
 
 describe('speed display', () => {

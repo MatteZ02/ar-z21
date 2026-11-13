@@ -52,6 +52,14 @@ export const nextFreeNumber = (functions: LocoFunction[]): number | null => {
   return null;
 };
 
+// Slot of the n-th default function: filled row by row, left then right
+// (F0 F1 on the first row, F2 F3 on the second, …), page after page.
+export const defaultSlot = (index: number): number => {
+  const page = Math.floor(index / SLOTS_PER_PAGE);
+  const onPage = index % SLOTS_PER_PAGE;
+  return slotAt(page, Math.floor(onPage / SLOT_COLUMNS), onPage % SLOT_COLUMNS);
+};
+
 // A new loco gets F0..F(count - 1) in order, F0 with the light icon.
 export const defaultFunctions = (count = 13): LocoFunction[] =>
   Array.from({length: count}, (_, number) => ({
@@ -59,5 +67,5 @@ export const defaultFunctions = (count = 13): LocoFunction[] =>
     name: '',
     icon: number === 0 ? 'light' : 'none',
     momentary: false,
-    slot: number,
+    slot: defaultSlot(number),
   }));

@@ -1,8 +1,12 @@
 import {defaultFunctions} from '../../library/functionSlots';
-import {emptyDetails, LocoDraft} from '../../library/types';
+import {
+  DEFAULT_ACCELERATION,
+  emptyDetails,
+  LocoDraft,
+} from '../../library/types';
 import {SqlDatabase} from '../database';
 import {LocoRepository} from '../locoRepository';
-import {migrate, SCHEMA_VERSION} from '../migrations';
+import {MIGRATIONS, migrate, SCHEMA_VERSION} from '../migrations';
 import {openTestDatabase} from '../testUtils/nodeSqlite';
 import {reorderVehicles} from '../vehicleOrder';
 
@@ -12,6 +16,7 @@ const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
   speedSteps: 128,
   maxSpeed: 200,
   speedDisplay: 'kmh',
+  acceleration: 3.5,
   photo: null,
   notes: '',
   details: emptyDetails(),
@@ -39,6 +44,20 @@ describe('migrations', () => {
     const db = openTestDatabase();
     await migrate(db);
     await expect(migrate(db)).resolves.toBeUndefined();
+  });
+
+  it('gives locos from before version 3 the default acceleration', async () => {
+    const db = openTestDatabase();
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(MIGRATIONS[0] + MIGRATIONS[1]);
+      await db.execAsync('PRAGMA user_version = 2;');
+    });
+    await db.runAsync(
+      "INSERT INTO locos (name, address, position) VALUES ('Old', 3, 0)",
+    );
+    await migrate(db);
+    const locos = await new LocoRepository(db).list();
+    expect(locos[0].acceleration).toBe(DEFAULT_ACCELERATION);
   });
 
   it('refuses a database from a newer app version', async () => {
@@ -69,6 +88,7 @@ describe('LocoRepository', () => {
       speedSteps: 128,
       maxSpeed: 200,
       speedDisplay: 'kmh',
+      acceleration: 3.5,
       notes: 'Bought 2021',
       details: {railway: 'SBB', articleNumber: '71950'},
     });

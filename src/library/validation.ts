@@ -4,11 +4,15 @@ import {MAX_FUNCTION_NUMBER, MAX_SLOTS} from './functionSlots';
 import {ConsistDraft, LocoDraft} from './types';
 
 export const MAX_SPEED_KMH = 500;
+// Acceleration in km/h per second.
+export const MIN_ACCELERATION = 0.1;
+export const MAX_ACCELERATION = 100;
 
 export type DraftProblem =
   | 'nameMissing'
   | 'addressInvalid'
   | 'maxSpeedInvalid'
+  | 'accelerationInvalid'
   | 'functionNumberInvalid'
   | 'functionNumberDuplicate'
   | 'functionSlotInvalid'
@@ -29,6 +33,13 @@ export const validateDraft = (draft: LocoDraft): DraftProblem[] => {
     draft.maxSpeed > MAX_SPEED_KMH
   ) {
     problems.push('maxSpeedInvalid');
+  }
+  if (
+    !Number.isFinite(draft.acceleration) ||
+    draft.acceleration < MIN_ACCELERATION ||
+    draft.acceleration > MAX_ACCELERATION
+  ) {
+    problems.push('accelerationInvalid');
   }
   const numbers = draft.functions.map((fn) => fn.number);
   if (

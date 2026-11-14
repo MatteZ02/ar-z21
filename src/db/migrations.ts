@@ -49,6 +49,10 @@ export const MIGRATIONS: string[] = [
     PRIMARY KEY (consist_id, loco_id)
   );
   `,
+  // 3: acceleration for the power handle drive mode, in km/h per second.
+  `
+  ALTER TABLE locos ADD COLUMN acceleration REAL NOT NULL DEFAULT 5;
+  `,
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.length;

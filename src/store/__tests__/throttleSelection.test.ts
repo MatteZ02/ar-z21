@@ -117,6 +117,7 @@ describe('consist conflicts between throttles', () => {
     speedSteps: 128,
     maxSpeed: 100,
     speedDisplay: 'kmh',
+    acceleration: 5,
     photo: null,
     notes: '',
     details: emptyDetails(),

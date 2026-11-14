@@ -10,7 +10,13 @@ import {
 } from 'react-native';
 import {defaultFunctions, nextFreeNumber} from '../../library/functionSlots';
 import {filePhotoStore, PhotoSource, pickPhoto} from '../../library/photos';
-import {emptyDetails, Loco, LocoDraft, LocoFunction} from '../../library/types';
+import {
+  DEFAULT_ACCELERATION,
+  emptyDetails,
+  Loco,
+  LocoDraft,
+  LocoFunction,
+} from '../../library/types';
 import {DraftProblem} from '../../library/validation';
 import {SpeedSteps} from '../../protocol';
 import {useLibraryStore} from '../../store/libraryStore';
@@ -29,9 +35,10 @@ import {ScreenFrame} from '../components/ScreenFrame';
 type Tab = 'data' | 'functions';
 
 // The form keeps numbers as text while typing.
-type Form = Omit<LocoDraft, 'address' | 'maxSpeed'> & {
+type Form = Omit<LocoDraft, 'address' | 'maxSpeed' | 'acceleration'> & {
   address: string;
   maxSpeed: string;
+  acceleration: string;
 };
 
 const newForm = (): Form => ({
@@ -40,6 +47,7 @@ const newForm = (): Form => ({
   speedSteps: 128,
   maxSpeed: '100',
   speedDisplay: 'kmh',
+  acceleration: String(DEFAULT_ACCELERATION),
   photo: null,
   notes: '',
   details: emptyDetails(),
@@ -50,10 +58,17 @@ const formFromLoco = (loco: Loco): Form => ({
   ...loco,
   address: String(loco.address),
   maxSpeed: String(loco.maxSpeed),
+  acceleration: String(loco.acceleration),
 });
 
 const toNumber = (text: string): number =>
   /^\d+$/.test(text.trim()) ? Number(text.trim()) : NaN;
+
+// Accepts a decimal comma too (Finnish and other keyboards).
+const toDecimal = (text: string): number => {
+  const normalised = text.trim().replace(',', '.');
+  return /^\d+(\.\d+)?$/.test(normalised) ? Number(normalised) : NaN;
+};
 
 const STEP_OPTIONS: {value: SpeedSteps; label: string}[] = [
   {value: 14, label: '14'},
@@ -168,6 +183,7 @@ export const LocoEditorScreen = () => {
       id: locoId ?? undefined,
       address: toNumber(form.address),
       maxSpeed: toNumber(form.maxSpeed),
+      acceleration: toDecimal(form.acceleration),
     };
     try {
       const result = await library.save(draft);
@@ -386,6 +402,17 @@ export const LocoEditorScreen = () => {
             keyboardType="number-pad"
             maxLength={3}
             message={problem('maxSpeedInvalid')}
+          />
+          <FormField
+            label={strings.editor.acceleration}
+            value={form.acceleration}
+            onChangeText={(acceleration) => {
+              update({acceleration});
+            }}
+            keyboardType="decimal-pad"
+            maxLength={5}
+            message={problem('accelerationInvalid')}
+            hint={strings.editor.accelerationHint}
           />
           <FormField
             label={strings.editor.notes}

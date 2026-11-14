@@ -178,6 +178,7 @@ describe('import plan and applying it', () => {
       speedSteps: 28,
       maxSpeed: 100,
       speedDisplay: 'step',
+      acceleration: 2.5,
       photo: null,
       notes: '',
       details: exported(0, 0).details,

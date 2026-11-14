@@ -11,6 +11,7 @@ const draft = (overrides: Partial<LocoDraft> = {}): LocoDraft => ({
   speedSteps: 128,
   maxSpeed: 200,
   speedDisplay: 'kmh',
+  acceleration: 5,
   photo: null,
   notes: '',
   details: emptyDetails(),

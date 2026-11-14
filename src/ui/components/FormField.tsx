@@ -5,10 +5,18 @@ type Props = Omit<TextInputProps, 'style'> & {
   label: string;
   // Shown below the field, e.g. a validation message.
   message?: string;
+  // Neutral help text below the field, when there is no message.
+  hint?: string;
 };
 
 // A labelled text field.
-export const FormField = ({label, message, multiline, ...input}: Props) => {
+export const FormField = ({
+  label,
+  message,
+  hint,
+  multiline,
+  ...input
+}: Props) => {
   const {colors, spacing, radii, fontSizes, minTouchTarget} = useTheme();
   return (
     <View style={{gap: spacing.xs}}>
@@ -41,6 +49,11 @@ export const FormField = ({label, message, multiline, ...input}: Props) => {
           style={{color: colors.statusShortCircuit, fontSize: fontSizes.small}}
         >
           {message}
+        </Text>
+      )}
+      {message === undefined && hint !== undefined && (
+        <Text style={{color: colors.textSecondary, fontSize: fontSizes.small}}>
+          {hint}
         </Text>
       )}
     </View>

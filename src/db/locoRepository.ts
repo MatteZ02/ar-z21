@@ -10,6 +10,7 @@ type LocoRow = {
   speed_steps: number;
   max_speed: number;
   speed_display: string;
+  acceleration: number;
   photo: string | null;
   notes: string;
   full_name: string;
@@ -49,6 +50,7 @@ const toLoco = (row: LocoRow, functions: LocoFunction[]): Loco => ({
   speedSteps: toSpeedSteps(row.speed_steps),
   maxSpeed: row.max_speed,
   speedDisplay: toSpeedDisplay(row.speed_display),
+  acceleration: row.acceleration,
   photo: row.photo,
   notes: row.notes,
   details: {
@@ -116,14 +118,15 @@ export class LocoRepository {
         draft.details.articleNumber,
         draft.details.decoderType,
         draft.details.buildYear,
+        draft.acceleration,
       ];
       if (id === undefined) {
         const position = await nextPosition(this.db);
         const result = await this.db.runAsync(
           `INSERT INTO locos (name, address, speed_steps, max_speed,
              speed_display, photo, notes, full_name, railway, article_number,
-             decoder_type, build_year, position)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             decoder_type, build_year, acceleration, position)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           ...values,
           position,
         );
@@ -133,7 +136,7 @@ export class LocoRepository {
           `UPDATE locos SET name = ?, address = ?, speed_steps = ?,
              max_speed = ?, speed_display = ?, photo = ?, notes = ?,
              full_name = ?, railway = ?, article_number = ?, decoder_type = ?,
-             build_year = ?
+             build_year = ?, acceleration = ?
            WHERE id = ?`,
           ...values,
           id,

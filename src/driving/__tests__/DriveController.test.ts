@@ -214,6 +214,34 @@ describe('DriveController', () => {
     expect(connection.emergencyStop).toHaveBeenCalledTimes(1);
   });
 
+  it('powers off on a quick second tap in STOP place, resumes on a later one', () => {
+    const {controller, connection, clock} = setup();
+    controller.globalStop('emergencyStopThenPowerOff');
+    // The second tap of a double tap lands on the status in STOP's place.
+    clock.advance(300);
+    expect(controller.restoreOrStop('emergencyStopThenPowerOff')).toBe(
+      'powerOff',
+    );
+    expect(connection.setTrackPower).toHaveBeenLastCalledWith(false);
+    // A separate tap later resumes.
+    clock.advance(STOP_DOUBLE_TAP_WINDOW_MS + 1);
+    expect(controller.restoreOrStop('emergencyStopThenPowerOff')).toBe(
+      'restore',
+    );
+    expect(connection.setTrackPower).toHaveBeenLastCalledWith(true);
+  });
+
+  it('resumes from a single STOP once the double-tap window has passed', () => {
+    const {controller, connection, clock} = setup();
+    controller.globalStop('emergencyStopThenPowerOff');
+    clock.advance(STOP_DOUBLE_TAP_WINDOW_MS + 1);
+    expect(controller.restoreOrStop('emergencyStopThenPowerOff')).toBe(
+      'restore',
+    );
+    expect(connection.setTrackPower).toHaveBeenCalledWith(true);
+    expect(connection.setTrackPower).not.toHaveBeenCalledWith(false);
+  });
+
   it('lets the report win once the user stops changing things', () => {
     const {controller, clock, live, emitReport} = setup();
     controller.watch(3);

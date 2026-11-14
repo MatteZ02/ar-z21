@@ -14,10 +14,11 @@ export const DEFAULT_STOP_MODE: StopMode = 'emergencyStopThenPowerOff';
 export const STOP_DOUBLE_TAP_WINDOW_MS = 600;
 
 // While the track is stopped or off, the track status takes STOP's place in
-// the header, and tapping it restores the track (decided by the user). For
-// this long after a STOP tap, a tap there still counts as a STOP tap: the
-// second tap of a double tap, or a nervous repeat, must never start trains.
-export const STOP_RESTORE_GUARD_MS = 2000;
+// the header, and tapping it restores the track (decided by the user). Within
+// the double-tap window of a STOP tap, a tap there still counts as a STOP tap,
+// so the second tap of a double tap switches power off instead of resuming;
+// any later tap resumes (decided by the user, 2026-11-14).
+export const STOP_RESTORE_GUARD_MS = STOP_DOUBLE_TAP_WINDOW_MS;
 
 export type StopAction = 'emergencyStop' | 'powerOff';
 

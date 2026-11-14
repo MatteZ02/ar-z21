@@ -91,7 +91,9 @@ export const TrackStatusChip = ({place}: Props) => {
       }
       accessibilityLiveRegion="assertive"
       disabled={!canRestore}
-      onPress={() => {
+      // On touch-down, like STOP, so a double tap is timed the same way
+      // whichever of the two the second tap lands on.
+      onPressIn={() => {
         const action = controller.restoreOrStop(stopMode);
         if (action === 'powerOff') {
           feedback.alarm();

@@ -94,7 +94,13 @@ src/
                         Depends on a UdpTransport interface, so tests use a fake.
   driving/              Global STOP taps, pending-change reconciliation, shared-control
                         detection (pure, tested) and DriveController, which every throttle
-                        action goes through.
+                        action goes through. powerHandle.ts: the "power handle" drive mode
+                        (Settings → Drive mode; default is the plain speed slider). Centre =
+                        coast, up = power, down = brake, at the lead loco's `acceleration`
+                        (km/h per s, default 5; braking uses the same rate), 0…top speed.
+                        A 100 ms timer runs only while the handle is off centre and sends a
+                        step only when it changes; the handle returns to coast on any stop,
+                        track status change, disconnect or loco STOP.
   consist/              PURE consist math: speed per member (128-step scale, converted per
                         member, offset in its own steps), direction, safety rules. Functions
                         are set per loco in the consist, with no mirroring or routing (decided

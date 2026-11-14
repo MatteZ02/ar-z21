@@ -29,6 +29,8 @@ export type Settings = {
   recent: VehicleRef[];
   // What the strip below the throttle shows.
   vehicleBar: VehicleBarMode;
+  // What the throttle slider does.
+  driveMode: DriveMode;
   // 'system' follows the phone; unsupported languages fall back to English.
   language: LanguageSetting;
 };
@@ -37,6 +39,11 @@ export type Settings = {
 // its own order (Vehicles → Arrange), top of the list leftmost.
 export type VehicleBarMode = 'recent' | 'all';
 export const VEHICLE_BAR_MODES: VehicleBarMode[] = ['recent', 'all'];
+
+// 'speed': the slider sets the speed (the default). 'powerHandle': the slider
+// is a power/brake handle; see src/driving/powerHandle.ts.
+export type DriveMode = 'speed' | 'powerHandle';
+export const DRIVE_MODES: DriveMode[] = ['speed', 'powerHandle'];
 
 type SettingsStore = Settings & {
   update: (changes: Partial<Settings>) => void;
@@ -91,6 +98,7 @@ export const useSettingsStore = create<SettingsStore>()(
       throttles: DEFAULT_THROTTLES,
       recent: [],
       vehicleBar: 'recent',
+      driveMode: 'speed',
       language: 'system',
       update: (changes) => {
         set(changes);

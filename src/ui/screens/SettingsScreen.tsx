@@ -11,7 +11,11 @@ import {
 import {DeviceInfo} from '../../connection';
 import {StopMode} from '../../driving/globalStop';
 import {useConnectionStore} from '../../store/connectionStore';
-import {useSettingsStore, VEHICLE_BAR_MODES} from '../../store/settingsStore';
+import {
+  DRIVE_MODES,
+  useSettingsStore,
+  VEHICLE_BAR_MODES,
+} from '../../store/settingsStore';
 import {
   LANGUAGE_NAMES,
   LanguageCode,
@@ -214,6 +218,20 @@ export const SettingsScreen = () => {
             settings.stopMode,
             (stopMode) => {
               settings.update({stopMode});
+            },
+          ),
+        )}
+
+        {section(
+          strings.settings.driveModeSection,
+          radioGroup(
+            DRIVE_MODES.map((mode) => ({
+              value: mode,
+              ...strings.settings.driveModes[mode],
+            })),
+            settings.driveMode,
+            (driveMode) => {
+              settings.update({driveMode});
             },
           ),
         )}

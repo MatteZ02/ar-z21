@@ -9,7 +9,12 @@ import {
 } from '../../consist/consistMath';
 import {defaultFunctions} from '../../library/functionSlots';
 import {shownSpeed} from '../../library/speedDisplay';
-import {Loco, VehicleRef} from '../../library/types';
+import {
+  DEFAULT_ACCELERATION,
+  DEFAULT_MAX_SPEED,
+  Loco,
+  VehicleRef,
+} from '../../library/types';
 import {maxSpeedStep, SpeedSteps} from '../../protocol';
 import {useConnectionStore} from '../../store/connectionStore';
 import {useLibraryStore} from '../../store/libraryStore';
@@ -24,6 +29,7 @@ import {strings} from '../../strings';
 import {useTheme} from '../../theme';
 import {useServices} from '../AppServices';
 import {feedback} from '../feedback';
+import {usePowerHandle} from '../hooks/usePowerHandle';
 import {pickVehicle} from '../pickVehicle';
 import {AppButton} from './AppButton';
 import {DirectionControl} from './DirectionControl';
@@ -31,6 +37,7 @@ import {FunctionGrid} from './FunctionGrid';
 import {Icon} from './Icon';
 import {LocoPhoto} from './LocoPhoto';
 import {LocoPicker} from './LocoPicker';
+import {PowerHandleSlider} from './PowerHandleSlider';
 import {SpeedSlider} from './SpeedSlider';
 import {StripItem, VehicleStrip} from './VehicleStrip';
 
@@ -283,6 +290,10 @@ const ThrottleControls = ({
   const {colors, spacing, fontSizes, minTouchTarget, radii} = useTheme();
   const {controller} = useServices();
   const connected = useConnectionStore((state) => state.state === 'connected');
+  const trackNormal = useConnectionStore(
+    (state) => state.trackStatus === 'normal',
+  );
+  const driveMode = useSettingsStore((state) => state.driveMode);
   const {members, isConsist} = target;
   const lead = members[0];
   // Whose functions are shown: the lead, or the member picked in the strip
@@ -366,7 +377,27 @@ const ThrottleControls = ({
     }`;
   })();
 
-  const slider = (
+  // Power handle mode: the lead loco's top speed and acceleration set how
+  // fast the speed changes (also for a consist, whose speed follows the lead).
+  const powerMode = driveMode === 'powerHandle';
+  const power = usePowerHandle({
+    maxStep: max,
+    maxSpeedKmh: lead.loco?.maxSpeed ?? DEFAULT_MAX_SPEED,
+    acceleration: lead.loco?.acceleration ?? DEFAULT_ACCELERATION,
+    speed: shown.speed,
+    active: powerMode && connected && trackNormal && !emergencyStop,
+    drive: (step) => {
+      drive(step, shown.forward);
+    },
+  });
+
+  const slider = powerMode ? (
+    <PowerHandleSlider
+      handle={power.handle}
+      disabled={disabled}
+      onChange={power.setHandle}
+    />
+  ) : (
     <SpeedSlider
       value={shown.speed}
       max={max}
@@ -426,6 +457,16 @@ const ThrottleControls = ({
             >
               {speedText}
             </Text>
+            {powerMode && (
+              <Text
+                style={[
+                  styles.speed,
+                  {color: colors.textSecondary, fontSize: fontSizes.body},
+                ]}
+              >
+                {strings.drive.handleState(Math.round(power.handle * 100))}
+              </Text>
+            )}
             {lives.some((live) => live?.shared) && (
               <View
                 accessible
@@ -529,6 +570,7 @@ const ThrottleControls = ({
               disabled={disabled}
               onPress={() => {
                 feedback.emergencyStop();
+                power.setHandle(0);
                 // Every member at once, without speed differences.
                 controller.emergencyStopLocos(addresses);
               }}

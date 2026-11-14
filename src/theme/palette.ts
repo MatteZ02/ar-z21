@@ -35,6 +35,9 @@ export const palette = {
   powerGreenDark: '#4C9A5A',
   powerAmberDark: '#BD9446',
   powerRedDark: '#BC5A4E',
+  // Power handle brake fill.
+  brakeBlue: '#4D6E9E',
+  brakeBlueDark: '#6383B3',
 
   purple700: '#6A1B9A',
   purple300: '#CE93D8',

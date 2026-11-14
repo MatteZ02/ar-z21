@@ -54,6 +54,9 @@ const en = {
     address: 'Address (1–10239)',
     speedSteps: 'Speed steps',
     maxSpeed: 'Top speed (km/h)',
+    acceleration: 'Acceleration (km/h per second)',
+    accelerationHint:
+      'Used in the power handle drive mode, for speeding up and braking.',
     speedDisplay: 'Show speed as',
     speedDisplays: {kmh: 'km/h', step: 'Speed step', mph: 'mph'},
     notes: 'Notes',
@@ -85,6 +88,8 @@ const en = {
       nameMissing: 'Enter a name.',
       addressInvalid: 'Enter an address from 1 to 10239.',
       maxSpeedInvalid: 'Enter a top speed from 1 to 500 km/h.',
+      accelerationInvalid:
+        'Enter an acceleration from 0.1 to 100 km/h per second.',
       functionNumberInvalid: 'Function numbers must be from 0 to 31.',
       functionNumberDuplicate: 'Each function number can be used only once.',
       functionSlotInvalid: 'A function is outside the function pages.',
@@ -336,6 +341,14 @@ const en = {
     current: 'Now driving',
     addressOnly: (address: number) => `Address ${address}`,
     changeAddressHint: 'Opens a window to drive another address.',
+    powerHandle: 'Power and brake',
+    // The power handle setting, -100 (full brake) … 100 (full power).
+    handleState: (percent: number) =>
+      percent > 0
+        ? `Power ${percent} %`
+        : percent < 0
+          ? `Brake ${-percent} %`
+          : 'Coast',
     noLoco: 'No loco on this throttle yet.',
     consistEmpty: 'This consist has no locos. Add locos to it in Vehicles.',
     members: 'Locos in this consist',
@@ -374,6 +387,18 @@ const en = {
       powerOff: {
         title: 'Track power off',
         detail: 'Every tap switches the track power off.',
+      },
+    },
+    driveModeSection: 'Drive mode',
+    driveModes: {
+      speed: {
+        title: 'Speed slider',
+        detail: 'The slider sets the speed directly.',
+      },
+      powerHandle: {
+        title: 'Power handle',
+        detail:
+          'Centre coasts, up accelerates, down brakes, at each loco’s acceleration. STOP works as usual.',
       },
     },
     vehicleBarSection: 'Vehicle bar on the drive screen',

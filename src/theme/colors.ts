@@ -20,6 +20,8 @@ export type ColorTokens = {
   throttleFillLow: string;
   throttleFillMid: string;
   throttleFillHigh: string;
+  // The brake half of the power handle.
+  throttleBrake: string;
   throttleThumb: string;
   functionActive: string;
   functionInactive: string;
@@ -63,6 +65,7 @@ export const lightColors: ColorTokens = {
   throttleFillLow: palette.powerGreen,
   throttleFillMid: palette.powerAmber,
   throttleFillHigh: palette.powerRed,
+  throttleBrake: palette.brakeBlue,
   throttleThumb: palette.gray900,
   functionActive: palette.blue600,
   functionInactive: palette.gray100,
@@ -102,6 +105,7 @@ export const darkColors: ColorTokens = {
   throttleFillLow: palette.powerGreenDark,
   throttleFillMid: palette.powerAmberDark,
   throttleFillHigh: palette.powerRedDark,
+  throttleBrake: palette.brakeBlueDark,
   throttleThumb: palette.white,
   functionActive: palette.blue300,
   functionInactive: palette.gray700,

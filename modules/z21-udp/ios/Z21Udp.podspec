@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name           = 'Z21Udp'
-  s.version        = '0.1.0'
+  s.version        = '0.2.0'
   s.summary        = 'UDP socket for the Z21 LAN protocol'
   s.description    = 'Minimal UDP socket used to talk to Z21-compatible central units.'
   s.license        = 'MIT'

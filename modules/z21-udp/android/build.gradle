@@ -4,12 +4,12 @@ plugins {
 }
 
 group = 'expo.modules.z21udp'
-version = '0.2.0'
+version = '0.2.1'
 
 android {
   namespace "expo.modules.z21udp"
   defaultConfig {
-    versionCode 2
-    versionName '0.2.0'
+    versionCode 3
+    versionName '0.2.1'
   }
 }

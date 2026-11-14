@@ -83,16 +83,22 @@ export const SpeedSlider = ({
     >
       {/* Children ignore touches, so locationY is always relative to the
           track itself. */}
+      {/* The gradient spans the whole track and the fill reveals it, so a
+          speed always has the same colour: green low, red near full. */}
       <View
         pointerEvents="none"
-        style={[
-          styles.fill,
-          {
-            height: `${fraction * 100}%`,
-            backgroundColor: colors.throttleFill,
-          },
-        ]}
-      />
+        style={[styles.fill, {height: `${fraction * 100}%`}]}
+      >
+        <View
+          style={[
+            styles.gradient,
+            {
+              height,
+              backgroundImage: `linear-gradient(to top, ${colors.throttleFillLow}, ${colors.throttleFillMid}, ${colors.throttleFillHigh})`,
+            },
+          ]}
+        />
+      </View>
       <View
         pointerEvents="none"
         style={[
@@ -114,6 +120,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   fill: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflow: 'hidden',
+  },
+  gradient: {
     position: 'absolute',
     left: 0,
     right: 0,

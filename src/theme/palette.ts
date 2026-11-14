@@ -28,6 +28,14 @@ export const palette = {
   red700: '#C62828',
   red400: '#EF5350',
 
+  // Speed slider gradient: muted, so the slider does not dominate.
+  powerGreen: '#3F8A4C',
+  powerAmber: '#B3893A',
+  powerRed: '#AE4A3F',
+  powerGreenDark: '#4C9A5A',
+  powerAmberDark: '#BD9446',
+  powerRedDark: '#BC5A4E',
+
   purple700: '#6A1B9A',
   purple300: '#CE93D8',
 

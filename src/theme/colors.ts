@@ -16,7 +16,10 @@ export type ColorTokens = {
   accent: string;
 
   throttleTrack: string;
-  throttleFill: string;
+  // The speed fill runs from low (bottom) through mid to high (top) power.
+  throttleFillLow: string;
+  throttleFillMid: string;
+  throttleFillHigh: string;
   throttleThumb: string;
   functionActive: string;
   functionInactive: string;
@@ -57,7 +60,9 @@ export const lightColors: ColorTokens = {
   accent: palette.blue600,
 
   throttleTrack: palette.gray100,
-  throttleFill: palette.blue600,
+  throttleFillLow: palette.powerGreen,
+  throttleFillMid: palette.powerAmber,
+  throttleFillHigh: palette.powerRed,
   throttleThumb: palette.gray900,
   functionActive: palette.blue600,
   functionInactive: palette.gray100,
@@ -94,7 +99,9 @@ export const darkColors: ColorTokens = {
   accent: palette.blue300,
 
   throttleTrack: palette.gray700,
-  throttleFill: palette.blue300,
+  throttleFillLow: palette.powerGreenDark,
+  throttleFillMid: palette.powerAmberDark,
+  throttleFillHigh: palette.powerRedDark,
   throttleThumb: palette.white,
   functionActive: palette.blue300,
   functionInactive: palette.gray700,
